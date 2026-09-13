@@ -1,0 +1,15 @@
+CREATE TABLE buyers (
+    buyer_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    buyer_name VARCHAR(150) NOT NULL,
+    contact_person VARCHAR(100),
+    email VARCHAR(150),
+    phone VARCHAR(30),
+    country VARCHAR(100),
+    address TEXT,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;

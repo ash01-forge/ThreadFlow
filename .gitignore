@@ -1,0 +1,18 @@
+# Local configuration overrides (contains local credentials)
+/config/config.local.php
+.env
+
+# Logs and temporary files
+*.log
+scratch/
+tmp/
+
+# IDE and OS metadata
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+.DS_Store
+Thumbs.db
