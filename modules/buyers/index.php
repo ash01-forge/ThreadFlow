@@ -79,8 +79,8 @@ include __DIR__ . '/../../includes/sidebar.php';
 <!-- Search & Filter Controls -->
 <div class="card mb-4">
     <div class="card-body">
-        <form method="get" action="<?= e(url('modules/buyers/index.php')) ?>" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
-            <div style="flex: 2; min-width: 240px;">
+        <form method="get" action="<?= e(url('modules/buyers/index.php')) ?>" class="filter-bar">
+            <div class="filter-field-grow">
                 <label for="q" class="form-label">Search Buyers</label>
                 <input type="text"
                        id="q"
@@ -90,7 +90,7 @@ include __DIR__ . '/../../includes/sidebar.php';
                        placeholder="Search by name, contact person, or email...">
             </div>
 
-            <div style="flex: 1; min-width: 160px;">
+            <div class="filter-field">
                 <label for="status" class="form-label">Status Filter</label>
                 <select id="status" name="status" class="form-control">
                     <option value="all" <?= $statusFilter === 'all' ? 'selected' : '' ?>>All Statuses</option>
@@ -99,7 +99,7 @@ include __DIR__ . '/../../includes/sidebar.php';
                 </select>
             </div>
 
-            <div style="display: flex; gap: 0.5rem;">
+            <div class="filter-actions">
                 <button type="submit" class="btn btn-primary">Filter</button>
                 <?php if ($search !== '' || $statusFilter !== 'all'): ?>
                     <a href="<?= e(url('modules/buyers/index.php')) ?>" class="btn btn-secondary">Clear</a>
@@ -111,14 +111,14 @@ include __DIR__ . '/../../includes/sidebar.php';
 
 <!-- Buyer Directory Table -->
 <div class="card">
-    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="card-header">
         <h2>Buyer Directory</h2>
         <span class="badge badge-muted"><?= count($buyers) ?> Total Result(s)</span>
     </div>
     <div class="card-body" style="padding: 0;">
         <?php if (empty($buyers)): ?>
-            <div style="padding: 2.5rem; text-align: center;">
-                <p class="text-muted" style="margin-bottom: 0.75rem;">No buyers found matching your criteria.</p>
+            <div class="empty-state">
+                <p>No buyers found matching your criteria.</p>
                 <?php if ($search !== '' || $statusFilter !== 'all'): ?>
                     <a href="<?= e(url('modules/buyers/index.php')) ?>" class="btn btn-secondary btn-sm">Clear Search &amp; Filters</a>
                 <?php else: ?>
@@ -130,14 +130,14 @@ include __DIR__ . '/../../includes/sidebar.php';
                 <table class="table">
                     <thead>
                         <tr>
-                            <th style="width: 50px;">ID</th>
+                            <th class="col-id">ID</th>
                             <th>Buyer Name</th>
                             <th>Contact Person</th>
                             <th>Email</th>
                             <th>Phone</th>
                             <th>Country</th>
-                            <th style="width: 90px; text-align: center;">Status</th>
-                            <th style="width: 220px; text-align: right;">Actions</th>
+                            <th class="col-status">Status</th>
+                            <th class="col-actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -161,38 +161,35 @@ include __DIR__ . '/../../includes/sidebar.php';
                                 </td>
                                 <td><?= e($b['phone'] ?: '—') ?></td>
                                 <td><?= e($b['country'] ?: '—') ?></td>
-                                <td style="text-align: center;">
+                                <td class="col-status">
                                     <?php if ((int)$b['is_active'] === 1): ?>
                                         <span class="badge badge-success">Active</span>
                                     <?php else: ?>
                                         <span class="badge badge-danger">Inactive</span>
                                     <?php endif; ?>
                                 </td>
-                                <td style="text-align: right; white-space: nowrap;">
-                                    <a href="<?= e(url('modules/buyers/view.php?id=' . (int)$b['buyer_id'])) ?>" class="btn btn-sm btn-secondary" style="margin-right: 0.25rem;">
-                                        View
-                                    </a>
-                                    <a href="<?= e(url('modules/buyers/edit.php?id=' . (int)$b['buyer_id'])) ?>" class="btn btn-sm btn-secondary" style="margin-right: 0.25rem;">
-                                        Edit
-                                    </a>
-                                    <form action="<?= e(url('modules/buyers/toggle_status.php')) ?>" method="post" style="display: inline-block; margin: 0;">
-                                        <?= csrf_field() ?>
-                                        <input type="hidden" name="buyer_id" value="<?= (int) $b['buyer_id'] ?>">
-                                        <?php if ((int)$b['is_active'] === 1): ?>
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-secondary"
-                                                    style="color: var(--color-danger);"
-                                                    onclick="return confirm('Are you sure you want to deactivate this buyer?');">
-                                                Deactivate
-                                            </button>
-                                        <?php else: ?>
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-primary"
-                                                    onclick="return confirm('Are you sure you want to reactivate this buyer?');">
-                                                Reactivate
-                                            </button>
-                                        <?php endif; ?>
-                                    </form>
+                                <td class="text-nowrap">
+                                    <div class="row-actions">
+                                        <a href="<?= e(url('modules/buyers/view.php?id=' . (int)$b['buyer_id'])) ?>" class="btn btn-sm btn-secondary">View</a>
+                                        <a href="<?= e(url('modules/buyers/edit.php?id=' . (int)$b['buyer_id'])) ?>" class="btn btn-sm btn-secondary">Edit</a>
+                                        <form action="<?= e(url('modules/buyers/toggle_status.php')) ?>" method="post" style="display: contents;">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="buyer_id" value="<?= (int) $b['buyer_id'] ?>">
+                                            <?php if ((int)$b['is_active'] === 1): ?>
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-danger"
+                                                        data-confirm="Are you sure you want to deactivate this buyer?">
+                                                    Deactivate
+                                                </button>
+                                            <?php else: ?>
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-primary"
+                                                        data-confirm="Are you sure you want to reactivate this buyer?">
+                                                    Reactivate
+                                                </button>
+                                            <?php endif; ?>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

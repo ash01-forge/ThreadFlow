@@ -1,12 +1,14 @@
 /**
- * ThreadFlow - Client-side Utilities
+ * ThreadFlow - Client-Side Modern UI Interactions
  * 
- * Vanilla JavaScript for responsive navigation drawer and UI interactions.
- * No external runtime dependencies.
+ * Vanilla JavaScript for responsive drawer, accessible keyboard controls,
+ * smooth dismissible alerts, and confirmation dialogs.
+ * 
+ * Strictly zero external dependencies.
  */
 
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Mobile Sidebar Toggle
+    // 1. Accessible Mobile Sidebar Drawer
     const sidebarToggle = document.querySelector('.sidebar-toggle');
     const sidebar = document.querySelector('.app-sidebar');
     const backdrop = document.querySelector('.sidebar-backdrop');
@@ -16,15 +18,19 @@ document.addEventListener('DOMContentLoaded', function () {
             sidebar.classList.add('open');
             backdrop.classList.add('active');
             sidebarToggle.setAttribute('aria-expanded', 'true');
+            // Prevent body scrolling when mobile drawer is active
+            document.body.style.overflow = 'hidden';
         }
 
         function closeSidebar() {
             sidebar.classList.remove('open');
             backdrop.classList.remove('active');
             sidebarToggle.setAttribute('aria-expanded', 'false');
+            document.body.style.overflow = '';
         }
 
-        sidebarToggle.addEventListener('click', function () {
+        sidebarToggle.addEventListener('click', function (e) {
+            e.stopPropagation();
             const isOpen = sidebar.classList.contains('open');
             if (isOpen) {
                 closeSidebar();
@@ -39,22 +45,34 @@ document.addEventListener('DOMContentLoaded', function () {
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && sidebar.classList.contains('open')) {
                 closeSidebar();
+                sidebarToggle.focus();
+            }
+        });
+
+        // Close mobile drawer automatically if resized beyond tablet breakpoint
+        window.addEventListener('resize', function () {
+            if (window.innerWidth > 768 && sidebar.classList.contains('open')) {
+                closeSidebar();
             }
         });
     }
 
-    // 2. Dismissible Alerts
+    // 2. Dismissible Alerts with Smooth Animation
     const alertCloseButtons = document.querySelectorAll('.alert-close');
     alertCloseButtons.forEach(function (button) {
         button.addEventListener('click', function () {
             const alert = this.closest('.alert');
             if (alert) {
-                alert.style.transition = 'opacity 0.2s ease, max-height 0.2s ease';
+                alert.style.transition = 'opacity 0.2s ease, max-height 0.25s ease, margin 0.2s ease, padding 0.2s ease';
+                alert.style.overflow = 'hidden';
                 alert.style.opacity = '0';
                 alert.style.maxHeight = '0';
+                alert.style.paddingTop = '0';
+                alert.style.paddingBottom = '0';
+                alert.style.marginBottom = '0';
                 setTimeout(function () {
                     alert.remove();
-                }, 200);
+                }, 250);
             }
         });
     });
@@ -68,5 +86,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 e.preventDefault();
             }
         });
+    });
+
+    // 4. Responsive Table Horizontal Scroll Hint
+    const responsiveTables = document.querySelectorAll('.table-responsive');
+    responsiveTables.forEach(function (container) {
+        const table = container.querySelector('table');
+        if (table) {
+            function checkScroll() {
+                if (table.offsetWidth > container.clientWidth) {
+                    container.classList.add('has-horizontal-scroll');
+                } else {
+                    container.classList.remove('has-horizontal-scroll');
+                }
+            }
+            checkScroll();
+            window.addEventListener('resize', checkScroll);
+        }
     });
 });

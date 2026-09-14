@@ -113,7 +113,7 @@ include __DIR__ . '/../includes/sidebar.php';
         <h3>Environment Summary</h3>
     </div>
     <div class="card-body">
-        <ul style="margin-left: 1.25rem;">
+        <ul class="list-unstyled">
             <li>PHP Version: <strong><?= e(PHP_VERSION) ?></strong></li>
             <li>MySQL Client Version: <strong><?= e($conn->client_info) ?></strong></li>
             <li>Server Info: <strong><?= e($conn->server_info) ?></strong></li>

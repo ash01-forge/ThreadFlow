@@ -54,19 +54,19 @@ include __DIR__ . '/../../includes/sidebar.php';
         <h1>Buyer Profile</h1>
         <div class="page-subtitle">Buyer ID #<?= (int) $buyer['buyer_id'] ?> &bull; <?= e($buyer['buyer_name']) ?></div>
     </div>
-    <div class="page-actions" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+    <div class="page-actions">
         <a href="<?= e(url('modules/buyers/index.php')) ?>" class="btn btn-secondary">Back to Buyer List</a>
         <a href="<?= e(url('modules/buyers/edit.php?id=' . (int)$buyer['buyer_id'])) ?>" class="btn btn-secondary">Edit Profile</a>
-        <form action="<?= e(url('modules/buyers/toggle_status.php')) ?>" method="post" style="display: inline-block; margin: 0;">
+        <form action="<?= e(url('modules/buyers/toggle_status.php')) ?>" method="post" style="display: contents;">
             <?= csrf_field() ?>
             <input type="hidden" name="buyer_id" value="<?= (int) $buyer['buyer_id'] ?>">
             <input type="hidden" name="from_view" value="1">
             <?php if ((int)$buyer['is_active'] === 1): ?>
-                <button type="submit" class="btn btn-secondary" style="color: var(--color-danger);" onclick="return confirm('Are you sure you want to deactivate this buyer?');">
+                <button type="submit" class="btn btn-danger" data-confirm="Are you sure you want to deactivate this buyer?">
                     Deactivate Buyer
                 </button>
             <?php else: ?>
-                <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to reactivate this buyer?');">
+                <button type="submit" class="btn btn-primary" data-confirm="Are you sure you want to reactivate this buyer?">
                     Reactivate Buyer
                 </button>
             <?php endif; ?>
@@ -74,8 +74,8 @@ include __DIR__ . '/../../includes/sidebar.php';
     </div>
 </div>
 
-<div class="card" style="max-width: 850px;">
-    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+<div class="card card-medium">
+    <div class="card-header">
         <h2><?= e($buyer['buyer_name']) ?></h2>
         <div>
             <?php if ((int)$buyer['is_active'] === 1): ?>
@@ -140,10 +140,10 @@ include __DIR__ . '/../../includes/sidebar.php';
                         <td>
                             <?php if ((int)$buyer['is_active'] === 1): ?>
                                 <span class="badge badge-success">Active</span>
-                                <span class="text-muted text-sm" style="margin-left: 0.5rem;">Ready for merchandising and production assignment</span>
+                                <span class="text-muted text-sm ml-2">Ready for merchandising and production assignment</span>
                             <?php else: ?>
                                 <span class="badge badge-danger">Inactive</span>
-                                <span class="text-muted text-sm" style="margin-left: 0.5rem;">Archived from new assignments</span>
+                                <span class="text-muted text-sm ml-2">Archived from new assignments</span>
                             <?php endif; ?>
                         </td>
                     </tr>

@@ -66,13 +66,13 @@ include __DIR__ . '/../../includes/sidebar.php';
         <h1>Edit Buyer</h1>
         <div class="page-subtitle">Update profile for Buyer #<?= (int) $buyer['buyer_id'] ?> &bull; <?= e($buyer['buyer_name']) ?></div>
     </div>
-    <div class="page-actions" style="display: flex; gap: 0.5rem; align-items: center;">
+    <div class="page-actions">
         <a href="<?= e(url('modules/buyers/view.php?id=' . (int)$buyer['buyer_id'])) ?>" class="btn btn-secondary">View Profile</a>
         <a href="<?= e(url('modules/buyers/index.php')) ?>" class="btn btn-secondary">Back to List</a>
     </div>
 </div>
 
-<div class="card" style="max-width: 680px;">
+<div class="card card-form">
     <div class="card-header">
         <h2>Edit Buyer Details</h2>
     </div>
@@ -170,7 +170,7 @@ include __DIR__ . '/../../includes/sidebar.php';
                 <span class="form-text">Full office, warehouse, or billing postal address.</span>
             </div>
 
-            <div class="mt-4" style="display: flex; gap: 0.75rem; align-items: center;">
+            <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Update Buyer</button>
                 <a href="<?= e(url('modules/buyers/view.php?id=' . (int)$buyer['buyer_id'])) ?>" class="btn btn-secondary">Cancel</a>
             </div>

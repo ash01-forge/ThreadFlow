@@ -19,13 +19,16 @@ $userRole = $currentUser['role'] ?? 'Guest';
     <div class="denied-container">
         <div class="card denied-card">
             <div class="card-header text-center">
+                <div class="denied-icon-wrap" aria-hidden="true">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+                </div>
                 <span class="badge badge-danger">403 Forbidden</span>
                 <h1 class="denied-title">Access Denied</h1>
             </div>
             <div class="card-body text-center">
                 <p>Your current account role (<strong><?= e(ucwords(str_replace('_', ' ', $userRole))) ?></strong>) does not have permission to access this resource or perform this action.</p>
                 <p class="text-muted text-sm">If you believe this is an error, please contact your system administrator to adjust your role assignments.</p>
-                <div class="actions mt-4">
+                <div class="mt-4">
                     <a href="<?= e(url('dashboard.php')) ?>" class="btn btn-primary">Return to Dashboard</a>
                 </div>
             </div>
