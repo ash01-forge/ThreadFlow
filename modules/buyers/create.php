@@ -31,7 +31,7 @@ include __DIR__ . '/../../includes/sidebar.php';
     </div>
 </div>
 
-<div class="card" style="max-width: 680px;">
+<div class="card card-form">
     <div class="card-header">
         <h2>New Buyer Details</h2>
     </div>
@@ -128,7 +128,7 @@ include __DIR__ . '/../../includes/sidebar.php';
                 <span class="form-text">Full office, warehouse, or billing postal address.</span>
             </div>
 
-            <div class="mt-4" style="display: flex; gap: 0.75rem; align-items: center;">
+            <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Save Buyer</button>
                 <a href="<?= e(url('modules/buyers/index.php')) ?>" class="btn btn-secondary">Cancel</a>
             </div>

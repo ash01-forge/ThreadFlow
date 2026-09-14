@@ -251,9 +251,12 @@ $stmt->close();
 | Class | Purpose |
 | :--- | :--- |
 | `.card` | White rounded card with subtle shadow (12 px radius) |
+| `.card-form` / `.card-narrow` | Card restricted to 680 px max-width (ideal for forms) |
+| `.card-medium` | Card restricted to 850 px max-width (ideal for detail dossiers) |
 | `.card-header` | Tinted card header; flex row for title + badge |
 | `.card-body` | Card content area with generous padding |
 | `.card-footer` | Tinted card footer (links, status info) |
+| `.empty-state` | Centred zero-results panel for empty directories/tables |
 | `.module-card` | Dashboard module tile — hover lifts |
 | `.module-card.restricted` | Dimmed dashed tile for locked modules |
 | `.module-card-title` | Module name heading inside tile |
@@ -270,6 +273,7 @@ $stmt->close();
 | `.form-control.has-error` | Red border + focus ring when field fails validation |
 | `.form-text` | Muted helper text below a field |
 | `.form-error` | Red validation message below a field |
+| `.form-actions` | Button cluster row for submit/cancel buttons |
 | `.filter-bar` | Flex search/filter row (use in index listing views) |
 | `.filter-field-grow` | Grows to fill available space (search input column) |
 | `.filter-field` | Fixed-width filter column (status dropdowns) |
@@ -316,6 +320,11 @@ $stmt->close();
 | :--- | :--- |
 | `.table-responsive` | Horizontal-scroll wrapper for wide tables |
 | `.table` | Styled data table with hover rows |
+| `.col-id` | Standard 52 px width for ID columns |
+| `.col-status` | Standard 96 px width with centered alignment for status columns |
+| `.col-actions` | Standard 220 px width with right alignment for action columns |
+| `.row-actions` | Compact flex row for table action buttons (`View`, `Edit`, `Toggle`) |
+| `.text-nowrap` | Prevents table cells or button groups from wrapping |
 
 ### Sidebar Navigation *(shared — do not modify)*
 
@@ -342,6 +351,9 @@ $stmt->close();
 | `.gap-1` – `.gap-4` | Flex/grid gap (0.25 rem – 1 rem) |
 | `.mt-1` – `.mt-5` | Margin-top utilities |
 | `.mb-1` – `.mb-5` | Margin-bottom utilities |
+| `.ml-1` – `.ml-3` | Margin-left utilities |
+| `.mr-1` – `.mr-3` | Margin-right utilities |
+| `.list-unstyled` | Semantic `<ul>` without bullets, padding, and subtle row borders |
 
 ### Quick Start Example — Module Index View
 
