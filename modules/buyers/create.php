@@ -1,10 +1,9 @@
 <?php
 /**
- * ThreadFlow - Add Buyer Form (Preserved Test Form)
+ * ThreadFlow - Add Buyer Form
  * 
  * Module 1: Assigned to Member 1.
  * Access restricted to Admin and Merchandiser roles.
- * Note: Form submission handler (store.php) is disabled until implemented by Member 1.
  */
 require_once __DIR__ . '/../../includes/auth.php';
 
@@ -13,7 +12,10 @@ require_role(['admin', 'merchandiser']);
 $pageTitle = 'Add Buyer';
 $currentNav = 'buyers';
 
-$handlerExists = file_exists(__DIR__ . '/store.php');
+// Retrieve and clear any flashed form validation errors and previous input
+$errors = $_SESSION['_form_errors'] ?? [];
+$old = $_SESSION['_form_old'] ?? [];
+unset($_SESSION['_form_errors'], $_SESSION['_form_old']);
 
 include __DIR__ . '/../../includes/header.php';
 include __DIR__ . '/../../includes/sidebar.php';
@@ -29,24 +31,12 @@ include __DIR__ . '/../../includes/sidebar.php';
     </div>
 </div>
 
-<?php if (!$handlerExists): ?>
-    <div class="alert alert-warning mb-4" role="alert">
-        <div>
-            <strong>Notice: Submission Handler Not Implemented Yet</strong>
-            <p class="mt-2 text-sm">
-                The form submission handler (<code>modules/buyers/store.php</code>) has not yet been built by Member 1.
-                The <strong>Save Buyer</strong> button is temporarily disabled to prevent broken submissions.
-            </p>
-        </div>
-    </div>
-<?php endif; ?>
-
-<div class="card" style="max-width: 650px;">
+<div class="card" style="max-width: 680px;">
     <div class="card-header">
         <h2>New Buyer Details</h2>
     </div>
     <div class="card-body">
-        <form action="store.php" method="post">
+        <form action="<?= e(url('modules/buyers/store.php')) ?>" method="post" novalidate>
             <?= csrf_field() ?>
 
             <div class="form-group">
@@ -54,10 +44,15 @@ include __DIR__ . '/../../includes/sidebar.php';
                 <input type="text"
                        id="buyer_name"
                        name="buyer_name"
-                       class="form-control"
+                       class="form-control <?= isset($errors['buyer_name']) ? 'has-error' : '' ?>"
                        maxlength="150"
                        required
+                       value="<?= e($old['buyer_name'] ?? '') ?>"
                        placeholder="e.g., Global Apparel Brands Ltd.">
+                <?php if (isset($errors['buyer_name'])): ?>
+                    <span class="form-error"><?= e($errors['buyer_name']) ?></span>
+                <?php endif; ?>
+                <span class="form-text">Primary organizational or corporate buyer name (maximum 150 characters).</span>
             </div>
 
             <div class="form-group">
@@ -65,9 +60,14 @@ include __DIR__ . '/../../includes/sidebar.php';
                 <input type="text"
                        id="contact_person"
                        name="contact_person"
-                       class="form-control"
+                       class="form-control <?= isset($errors['contact_person']) ? 'has-error' : '' ?>"
                        maxlength="100"
+                       value="<?= e($old['contact_person'] ?? '') ?>"
                        placeholder="e.g., John Smith">
+                <?php if (isset($errors['contact_person'])): ?>
+                    <span class="form-error"><?= e($errors['contact_person']) ?></span>
+                <?php endif; ?>
+                <span class="form-text">Primary representative or merchandiser contact (maximum 100 characters).</span>
             </div>
 
             <div class="form-group">
@@ -75,9 +75,14 @@ include __DIR__ . '/../../includes/sidebar.php';
                 <input type="email"
                        id="email"
                        name="email"
-                       class="form-control"
+                       class="form-control <?= isset($errors['email']) ? 'has-error' : '' ?>"
                        maxlength="150"
+                       value="<?= e($old['email'] ?? '') ?>"
                        placeholder="e.g., procurement@globalapparel.com">
+                <?php if (isset($errors['email'])): ?>
+                    <span class="form-error"><?= e($errors['email']) ?></span>
+                <?php endif; ?>
+                <span class="form-text">Official contact email for correspondence and purchase orders.</span>
             </div>
 
             <div class="form-group">
@@ -85,9 +90,14 @@ include __DIR__ . '/../../includes/sidebar.php';
                 <input type="text"
                        id="phone"
                        name="phone"
-                       class="form-control"
+                       class="form-control <?= isset($errors['phone']) ? 'has-error' : '' ?>"
                        maxlength="30"
+                       value="<?= e($old['phone'] ?? '') ?>"
                        placeholder="e.g., +1-555-0199">
+                <?php if (isset($errors['phone'])): ?>
+                    <span class="form-error"><?= e($errors['phone']) ?></span>
+                <?php endif; ?>
+                <span class="form-text">Contact telephone or direct mobile line (maximum 30 characters).</span>
             </div>
 
             <div class="form-group">
@@ -95,29 +105,32 @@ include __DIR__ . '/../../includes/sidebar.php';
                 <input type="text"
                        id="country"
                        name="country"
-                       class="form-control"
+                       class="form-control <?= isset($errors['country']) ? 'has-error' : '' ?>"
                        maxlength="100"
+                       value="<?= e($old['country'] ?? '') ?>"
                        placeholder="e.g., Germany, United Kingdom, USA">
+                <?php if (isset($errors['country'])): ?>
+                    <span class="form-error"><?= e($errors['country']) ?></span>
+                <?php endif; ?>
+                <span class="form-text">Country of buyer headquarters or main sourcing office (maximum 100 characters).</span>
             </div>
 
             <div class="form-group">
                 <label for="address" class="form-label">Address</label>
                 <textarea id="address"
                           name="address"
-                          class="form-control"
+                          class="form-control <?= isset($errors['address']) ? 'has-error' : '' ?>"
                           rows="3"
-                          placeholder="Corporate office or billing address..."></textarea>
+                          placeholder="Corporate office or billing address..."><?= e($old['address'] ?? '') ?></textarea>
+                <?php if (isset($errors['address'])): ?>
+                    <span class="form-error"><?= e($errors['address']) ?></span>
+                <?php endif; ?>
+                <span class="form-text">Full office, warehouse, or billing postal address.</span>
             </div>
 
-            <div class="mt-4">
-                <?php if ($handlerExists): ?>
-                    <button type="submit" class="btn btn-primary">Save Buyer</button>
-                <?php else: ?>
-                    <button type="submit" class="btn btn-disabled" disabled aria-disabled="true" title="Handler store.php does not exist yet">
-                        Save Buyer (Handler Not Implemented)
-                    </button>
-                <?php endif; ?>
-                <a href="<?= e(url('modules/buyers/index.php')) ?>" class="btn btn-secondary ml-2">Cancel</a>
+            <div class="mt-4" style="display: flex; gap: 0.75rem; align-items: center;">
+                <button type="submit" class="btn btn-primary">Save Buyer</button>
+                <a href="<?= e(url('modules/buyers/index.php')) ?>" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
