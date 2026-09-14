@@ -229,3 +229,173 @@ $stmt->close();
      ```bash
      C:\xampp\php\php.exe -l your_modified_file.php
      ```
+
+---
+
+## 10. Reusable UI Classes — `design/modern-ui` Reference
+
+> Added by the `design/modern-ui` branch. All classes are defined in [`assets/css/style.css`](../assets/css/style.css). Use these in your module views to maintain a consistent look without writing new CSS.
+
+### Layout
+
+| Class | Purpose |
+| :--- | :--- |
+| `.page-header` | Flex row between page title and action buttons |
+| `.page-title-group` | Wraps `<h1>` + `.page-subtitle` |
+| `.page-subtitle` | Muted description line under the page title |
+| `.page-actions` | Right-aligned action button group |
+| `.content-container` | Centred max-width wrapper (1200 px) inside `.app-main` |
+
+### Cards
+
+| Class | Purpose |
+| :--- | :--- |
+| `.card` | White rounded card with subtle shadow (12 px radius) |
+| `.card-header` | Tinted card header; flex row for title + badge |
+| `.card-body` | Card content area with generous padding |
+| `.card-footer` | Tinted card footer (links, status info) |
+| `.module-card` | Dashboard module tile — hover lifts |
+| `.module-card.restricted` | Dimmed dashed tile for locked modules |
+| `.module-card-title` | Module name heading inside tile |
+| `.module-card-desc` | Short description inside tile |
+| `.module-card-footer` | CTA area at the bottom of a module tile |
+
+### Forms
+
+| Class | Purpose |
+| :--- | :--- |
+| `.form-group` | Vertical spacing wrapper around label + input |
+| `.form-label` | Bold field label; add `.required` `<span>` for `*` |
+| `.form-control` | Full-width styled input, textarea, or select |
+| `.form-control.has-error` | Red border + focus ring when field fails validation |
+| `.form-text` | Muted helper text below a field |
+| `.form-error` | Red validation message below a field |
+| `.filter-bar` | Flex search/filter row (use in index listing views) |
+| `.filter-field-grow` | Grows to fill available space (search input column) |
+| `.filter-field` | Fixed-width filter column (status dropdowns) |
+| `.filter-actions` | Button cluster at the right end of a filter bar |
+
+### Buttons
+
+| Class | Purpose |
+| :--- | :--- |
+| `.btn` | Base button — always combine with a variant |
+| `.btn-primary` | Maroon filled — primary CTA |
+| `.btn-secondary` | White/outlined — secondary actions |
+| `.btn-danger` | White/red-outlined — destructive actions |
+| `.btn-sm` | Compact size for table row actions |
+| `.btn-auth-submit` | Full-width button for login/auth forms |
+
+### Badges & Status
+
+| Class | Purpose |
+| :--- | :--- |
+| `.badge` | Base pill — combine with colour variant |
+| `.badge-primary` | Maroon fill |
+| `.badge-success` | Green — Active, Ready |
+| `.badge-warning` | Amber — Pending, Under Development |
+| `.badge-danger` | Red — Inactive, Missing, Error |
+| `.badge-info` | Blue — informational |
+| `.badge-muted` | Grey — neutral labels (e.g. M1, M2) |
+| `.badge-role` | Translucent white — role chip in the header |
+
+### Alerts
+
+| Class | Purpose |
+| :--- | :--- |
+| `.alert` | Base alert bar — combine with colour variant |
+| `.alert-success` | Green confirmation |
+| `.alert-danger` / `.alert-error` | Red error |
+| `.alert-warning` | Amber caution |
+| `.alert-info` | Blue information |
+| `.alert-close` | Dismiss button inside an alert |
+
+### Tables
+
+| Class | Purpose |
+| :--- | :--- |
+| `.table-responsive` | Horizontal-scroll wrapper for wide tables |
+| `.table` | Styled data table with hover rows |
+
+### Sidebar Navigation *(shared — do not modify)*
+
+| Class | Purpose |
+| :--- | :--- |
+| `.nav-link` | Sidebar anchor — add `.active` for current page |
+| `.nav-link-main` | Inner flex span (icon + label) |
+| `.nav-icon` | 18 × 18 inline SVG icon beside nav label |
+| `.nav-badge` | Small pill label at the right of a nav item |
+
+### Utilities
+
+| Class | Purpose |
+| :--- | :--- |
+| `.text-center / .text-right / .text-left` | Text alignment |
+| `.text-muted` | Secondary muted text colour |
+| `.text-sm` | 0.8125 rem font size |
+| `.text-xs` | 0.72 rem font size |
+| `.font-semibold / .font-bold` | Font weight helpers |
+| `.d-flex` | `display: flex` |
+| `.align-items-center` | Flex vertical centre |
+| `.justify-content-between` | Flex space-between |
+| `.flex-wrap` | Allow flex children to wrap |
+| `.gap-1` – `.gap-4` | Flex/grid gap (0.25 rem – 1 rem) |
+| `.mt-1` – `.mt-5` | Margin-top utilities |
+| `.mb-1` – `.mb-5` | Margin-bottom utilities |
+
+### Quick Start Example — Module Index View
+
+```php
+<div class="page-header">
+    <div class="page-title-group">
+        <h1>My Records</h1>
+        <div class="page-subtitle">Module X &bull; Access: Admin, My Role</div>
+    </div>
+    <div class="page-actions">
+        <a href="<?= e(url('modules/my_module/create.php')) ?>" class="btn btn-primary">Add New</a>
+    </div>
+</div>
+
+<!-- Filter bar inside a card -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="filter-bar">
+            <div class="filter-field-grow">
+                <label for="q" class="form-label">Search</label>
+                <input type="text" id="q" name="q" class="form-control" value="<?= e($search) ?>">
+            </div>
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Data table inside a card -->
+<div class="card">
+    <div class="card-header">
+        <h2>Records</h2>
+        <span class="badge badge-muted"><?= count($rows) ?> results</span>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr><th>Name</th><th>Status</th><th style="text-align:right;">Actions</th></tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($rows as $row): ?>
+                    <tr>
+                        <td><?= e($row['name']) ?></td>
+                        <td><span class="badge badge-success">Active</span></td>
+                        <td style="text-align:right;">
+                            <a href="..." class="btn btn-sm btn-secondary">View</a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+```

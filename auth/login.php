@@ -53,6 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="auth-page">
     <div class="auth-card">
         <div class="auth-header">
+            <div class="auth-brand-badge" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 3v18"></path><path d="M3 12h18"></path><circle cx="12" cy="12" r="4"></circle></svg>
+            </div>
             <h1>THREADFLOW</h1>
             <p>Garment Production, Quality Control &amp; Traceability</p>
         </div>
@@ -62,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <?php if (!empty($errors['auth'])): ?>
                 <div class="alert alert-danger" role="alert">
-                    <span><?= e($errors['auth']) ?></span>
+                    <span class="alert-message"><?= e($errors['auth']) ?></span>
                 </div>
             <?php endif; ?>
 
@@ -74,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="text"
                            id="identifier"
                            name="identifier"
-                           class="form-control"
+                           class="form-control<?= !empty($errors['identifier']) ? ' has-error' : '' ?>"
                            value="<?= e($identifier) ?>"
                            autocomplete="username"
                            required
@@ -89,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="password"
                            id="password"
                            name="password"
-                           class="form-control"
+                           class="form-control<?= !empty($errors['password']) ? ' has-error' : '' ?>"
                            autocomplete="current-password"
                            required>
                     <?php if (!empty($errors['password'])): ?>
@@ -97,14 +100,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endif; ?>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+                <button type="submit" class="btn btn-primary btn-auth-submit">
                     Sign In
                 </button>
             </form>
         </div>
 
-        <div class="card-footer text-center text-muted text-sm">
-            <span>ThreadFlow Shared Foundation &bull; Internal Access Only</span>
+        <div class="auth-footer text-center text-muted text-sm">
+            <span>ThreadFlow &bull; Internal Access Only</span>
         </div>
     </div>
 </body>
