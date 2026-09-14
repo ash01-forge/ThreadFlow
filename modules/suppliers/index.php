@@ -22,19 +22,13 @@ $typeFilter = trim($_GET['type'] ?? 'all');
 
 // Build query with prepared statements
 $whereClauses = [];
-$bindTypes = '';
-$bindParams = [];
+$wildcard = '%' . $search . '%';
+$hasSearch = ($search !== '');
+$hasType = ($typeFilter !== 'all' && in_array($typeFilter, $allowedSupplierTypes, true));
 
 // Search across name, contact person, email, supplier type, and country
-if ($search !== '') {
+if ($hasSearch) {
     $whereClauses[] = "(supplier_name LIKE ? OR contact_person LIKE ? OR email LIKE ? OR supplier_type LIKE ? OR country LIKE ?)";
-    $wildcard = '%' . $search . '%';
-    $bindTypes .= 'sssss';
-    $bindParams[] = $wildcard;
-    $bindParams[] = $wildcard;
-    $bindParams[] = $wildcard;
-    $bindParams[] = $wildcard;
-    $bindParams[] = $wildcard;
 }
 
 // Filter by active status
@@ -45,10 +39,8 @@ if ($statusFilter === 'active') {
 }
 
 // Filter by supplier type
-if ($typeFilter !== 'all' && in_array($typeFilter, $allowedSupplierTypes, true)) {
+if ($hasType) {
     $whereClauses[] = "supplier_type = ?";
-    $bindTypes .= 's';
-    $bindParams[] = $typeFilter;
 }
 
 $sql = "SELECT supplier_id, supplier_name, supplier_type, contact_person, email, phone, country, lead_time_days, is_active, created_at, updated_at FROM suppliers";
@@ -64,8 +56,12 @@ try {
         error_log("Failed to prepare suppliers index query: " . $conn->error);
         flash_set('error', 'A database error occurred while fetching the supplier list.');
     } else {
-        if (!empty($bindParams)) {
-            $stmt->bind_param($bindTypes, ...$bindParams);
+        if ($hasSearch && $hasType) {
+            $stmt->bind_param("ssssss", $wildcard, $wildcard, $wildcard, $wildcard, $wildcard, $typeFilter);
+        } elseif ($hasSearch) {
+            $stmt->bind_param("sssss", $wildcard, $wildcard, $wildcard, $wildcard, $wildcard);
+        } elseif ($hasType) {
+            $stmt->bind_param("s", $typeFilter);
         }
 
         $stmt->execute();

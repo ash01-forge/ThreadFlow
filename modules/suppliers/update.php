@@ -107,7 +107,7 @@ if ($country !== '' && mb_strlen($country) > 100) {
 // 7. Lead Time Days: Optional, reasonable non-negative integer (0 to 365)
 $leadTimeDays = null;
 if ($leadTimeString !== '') {
-    if (!filter_var($leadTimeString, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 365]]) && $leadTimeString !== '0') {
+    if (filter_var($leadTimeString, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 365]]) === false) {
         $errors['lead_time_days'] = 'Lead time must be a non-negative whole number (0 to 365 days).';
     } else {
         $leadTimeDays = (int) $leadTimeString;

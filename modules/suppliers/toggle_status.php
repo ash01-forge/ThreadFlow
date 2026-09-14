@@ -76,5 +76,5 @@ try {
 } catch (mysqli_sql_exception $e) {
     error_log("Database exception toggling supplier status: " . $e->getMessage());
     flash_set('error', 'A database error occurred while updating status.');
-    redirect('modules/suppliers/index.php');
+    redirect($fromView ? 'modules/suppliers/view.php?id=' . $supplierId : 'modules/suppliers/index.php');
 }
