@@ -70,6 +70,15 @@ $userRole = $currentUser['role'] ?? '';
                         <span class="nav-badge badge-muted">M4</span>
                     </a>
                 </li>
+                <li>
+                    <a href="<?= e(url('modules/quality_inspections/index.php')) ?>" class="nav-link <?= $currentNav === 'quality_inspections' ? 'active' : '' ?>">
+                        <span class="nav-link-main">
+                            <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                            <span>Quality Inspections</span>
+                        </span>
+                        <span class="nav-badge badge-muted">M4</span>
+                    </a>
+                </li>
             <?php endif; ?>
         </ul>
 
