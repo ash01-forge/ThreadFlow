@@ -46,6 +46,15 @@ $userRole = $currentUser['role'] ?? '';
                         <span class="nav-badge badge-muted">M1</span>
                     </a>
                 </li>
+                <li>
+                    <a href="<?= e(url('modules/buyer_change_requests/index.php')) ?>" class="nav-link <?= $currentNav === 'buyer_change_requests' ? 'active' : '' ?>">
+                        <span class="nav-link-main">
+                            <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><path d="M8 9h8M8 13h5"></path></svg>
+                            <span>Buyer Change Requests</span>
+                        </span>
+                        <span class="nav-badge badge-muted">M1</span>
+                    </a>
+                </li>
             <?php endif; ?>
 
             <?php if (in_array($userRole, ['admin', 'production_manager'], true)): ?>
