@@ -76,6 +76,15 @@ $userRole = $currentUser['role'] ?? '';
                         <span class="nav-badge badge-muted">M3</span>
                     </a>
                 </li>
+                <li>
+                    <a href="<?= e(url('modules/stage_progress/index.php')) ?>" class="nav-link <?= $currentNav === 'stage_progress' ? 'active' : '' ?>">
+                        <span class="nav-link-main">
+                            <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                            <span>Stage Progress History</span>
+                        </span>
+                        <span class="nav-badge badge-muted">M3</span>
+                    </a>
+                </li>
             <?php endif; ?>
 
             <?php if (in_array($userRole, ['admin', 'qc_officer'], true)): ?>

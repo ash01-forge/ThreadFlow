@@ -1,0 +1,275 @@
+<?php
+/**
+ * ThreadFlow - Store New Stage Progress Handler
+ * 
+ * Module 3: Assigned to Member 3.
+ * Access restricted to Admin and Production Manager roles.
+ * POST-only handler for creating new stage progress records.
+ */
+require_once __DIR__ . '/../../includes/auth.php';
+
+require_role(['admin', 'production_manager']);
+
+// Enforce POST method
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit('Method Not Allowed');
+}
+
+// Enforce CSRF token
+require_csrf();
+
+// Extract and trim inputs
+$batchIdRaw   = trim($_POST['batch_id'] ?? '');
+$stageIdRaw   = trim($_POST['stage_id'] ?? '');
+$inputQtyRaw  = trim($_POST['input_quantity'] ?? '');
+$outputQtyRaw = trim($_POST['output_quantity'] ?? '0');
+$status       = trim($_POST['status'] ?? 'In Progress');
+$startTimeRaw = trim($_POST['start_time'] ?? '');
+$endTimeRaw   = trim($_POST['end_time'] ?? '');
+$remarks      = trim($_POST['remarks'] ?? '');
+
+$errors = [];
+
+// 1. Production Batch Validation (Must exist)
+$batchId = filter_var($batchIdRaw, FILTER_VALIDATE_INT);
+$batch   = null;
+
+if (!$batchId || $batchId <= 0) {
+    $errors['batch_id'] = 'A valid Production Batch must be selected.';
+} else {
+    try {
+        $bStmt = $conn->prepare("SELECT batch_id, batch_number, planned_quantity, status FROM production_batches WHERE batch_id = ? LIMIT 1");
+        if ($bStmt) {
+            $bStmt->bind_param("i", $batchId);
+            $bStmt->execute();
+            $bRes = $bStmt->get_result();
+            $batch = $bRes->fetch_assoc();
+            $bStmt->close();
+
+            if (!$batch) {
+                $errors['batch_id'] = 'The selected production batch does not exist in the database.';
+            }
+        }
+    } catch (mysqli_sql_exception $e) {
+        error_log("Database exception verifying batch existence: " . $e->getMessage());
+        $errors['batch_id'] = 'Unable to verify production batch at this time.';
+    }
+}
+
+// 2. Production Stage Validation (Must exist & active)
+$stageId      = filter_var($stageIdRaw, FILTER_VALIDATE_INT);
+$currentStage = null;
+
+if (!$stageId || $stageId <= 0) {
+    $errors['stage_id'] = 'A valid Production Stage must be selected.';
+} else {
+    try {
+        $sStmt = $conn->prepare("SELECT stage_id, stage_name, stage_code, sequence_number, is_active FROM production_stages WHERE stage_id = ? LIMIT 1");
+        if ($sStmt) {
+            $sStmt->bind_param("i", $stageId);
+            $sStmt->execute();
+            $sRes = $sStmt->get_result();
+            $currentStage = $sRes->fetch_assoc();
+            $sStmt->close();
+
+            if (!$currentStage) {
+                $errors['stage_id'] = 'The selected production stage does not exist in the database.';
+            } elseif ((int)$currentStage['is_active'] !== 1) {
+                $errors['stage_id'] = 'The selected production stage is currently inactive.';
+            }
+        }
+    } catch (mysqli_sql_exception $e) {
+        error_log("Database exception verifying stage existence: " . $e->getMessage());
+        $errors['stage_id'] = 'Unable to verify production stage at this time.';
+    }
+}
+
+// 3. Duplicate Prevention: only one progress record per batch & stage
+if ($batch && $currentStage) {
+    try {
+        $dupStmt = $conn->prepare("SELECT progress_id FROM stage_progress WHERE batch_id = ? AND stage_id = ? LIMIT 1");
+        if ($dupStmt) {
+            $dupStmt->bind_param("ii", $batchId, $stageId);
+            $dupStmt->execute();
+            $dupRes = $dupStmt->get_result();
+            if ($dupRes && $dupRes->num_rows > 0) {
+                $errors['stage_id'] = "Progress for stage '{$currentStage['stage_name']}' has already been recorded for this batch. Each stage can only be recorded once per batch.";
+            }
+            $dupStmt->close();
+        }
+    } catch (mysqli_sql_exception $e) {
+        error_log("Database exception checking duplicate stage progress: " . $e->getMessage());
+        $errors['stage_id'] = 'Unable to verify stage uniqueness at this time.';
+    }
+}
+
+// 4. Input Quantity Validation (Positive integer > 0)
+$inputQty = filter_var($inputQtyRaw, FILTER_VALIDATE_INT);
+if ($inputQty === false || $inputQty <= 0) {
+    $errors['input_quantity'] = 'Input quantity must be a positive integer greater than zero.';
+}
+
+// 5. Output Quantity Validation (Zero or positive integer >= 0)
+$outputQty = filter_var($outputQtyRaw, FILTER_VALIDATE_INT);
+if ($outputQty === false || $outputQty < 0) {
+    $errors['output_quantity'] = 'Output quantity must be zero or a positive integer.';
+}
+
+// 6. Quantity Upper Bound: output cannot exceed input
+if ($inputQty !== false && $inputQty > 0 && $outputQty !== false && $outputQty >= 0) {
+    if ($outputQty > $inputQty) {
+        $errors['output_quantity'] = "Output quantity ({$outputQty}) cannot exceed input quantity ({$inputQty}).";
+    }
+}
+
+// 7. Input Quantity cannot exceed selected batch planned quantity
+if ($batch && $inputQty !== false && $inputQty > 0) {
+    $plannedQty = (int)$batch['planned_quantity'];
+    if ($inputQty > $plannedQty) {
+        $errors['input_quantity'] = "Input quantity (" . number_format($inputQty) . ") cannot exceed the batch planned quantity (" . number_format($plannedQty) . " pcs).";
+    }
+}
+
+// 8. Preceding Stage Completion Check:
+// For a later stage, input quantity cannot exceed the completed output of the immediately preceding stage.
+if ($batch && $currentStage && $inputQty !== false && $inputQty > 0) {
+    try {
+        // Locate immediately preceding stage by highest sequence_number strictly less than current stage's sequence_number
+        $currentSeq = (int)$currentStage['sequence_number'];
+        $prevStageStmt = $conn->prepare("SELECT stage_id, stage_name, stage_code, sequence_number 
+                                         FROM production_stages 
+                                         WHERE sequence_number < ? 
+                                         ORDER BY sequence_number DESC 
+                                         LIMIT 1");
+        if ($prevStageStmt) {
+            $prevStageStmt->bind_param("i", $currentSeq);
+            $prevStageStmt->execute();
+            $prevStageRes = $prevStageStmt->get_result();
+            $precedingStage = $prevStageRes->fetch_assoc();
+            $prevStageStmt->close();
+
+            if ($precedingStage) {
+                // Preceding stage exists: this is a later stage. Verify preceding stage's progress record for this batch
+                $precProgStmt = $conn->prepare("SELECT progress_id, status, output_quantity, input_quantity 
+                                                FROM stage_progress 
+                                                WHERE batch_id = ? AND stage_id = ? 
+                                                LIMIT 1");
+                if ($precProgStmt) {
+                    $precProgStmt->bind_param("ii", $batchId, $precedingStage['stage_id']);
+                    $precProgStmt->execute();
+                    $precProgRes = $precProgStmt->get_result();
+                    $precedingProgress = $precProgRes->fetch_assoc();
+                    $precProgStmt->close();
+
+                    if (!$precedingProgress) {
+                        $errors['input_quantity'] = "Cannot start stage '{$currentStage['stage_name']}': The immediately preceding stage '{$precedingStage['stage_name']}' has no recorded progress for this batch yet.";
+                    } elseif ($precedingProgress['status'] !== 'Completed') {
+                        $errors['input_quantity'] = "Cannot start stage '{$currentStage['stage_name']}': The immediately preceding stage '{$precedingStage['stage_name']}' is not yet completed (current status: {$precedingProgress['status']}).";
+                    } else {
+                        $completedOutput = (int)$precedingProgress['output_quantity'];
+                        if ($inputQty > $completedOutput) {
+                            $errors['input_quantity'] = "Input quantity (" . number_format($inputQty) . ") cannot exceed the completed output (" . number_format($completedOutput) . " pcs) of the immediately preceding stage '{$precedingStage['stage_name']}'.";
+                        }
+                    }
+                }
+            }
+        }
+    } catch (mysqli_sql_exception $e) {
+        error_log("Database exception verifying preceding stage output: " . $e->getMessage());
+        $errors['input_quantity'] = 'Unable to verify preceding stage status at this time.';
+    }
+}
+
+// 9. Status Validation
+$validStatuses = ['In Progress', 'On Hold', 'Completed'];
+if (!in_array($status, $validStatuses, true)) {
+    $errors['status'] = 'Invalid status selected. Allowed: In Progress, On Hold, Completed.';
+}
+
+// 10. Start Time Validation
+$startTimeFormatted = null;
+$startTs            = false;
+
+if ($startTimeRaw === '') {
+    $errors['start_time'] = 'Start Date and Time is required.';
+} else {
+    $startTs = strtotime($startTimeRaw);
+    if ($startTs === false) {
+        $errors['start_time'] = 'A valid start date and time is required.';
+    } else {
+        $startTimeFormatted = date('Y-m-d H:i:s', $startTs);
+    }
+}
+
+// 11. End Time & Completed Status Validation
+$endTimeFormatted = null;
+
+if ($status === 'Completed' && $endTimeRaw === '') {
+    $errors['end_time'] = 'An End Date & Time is required when stage status is Completed.';
+} elseif ($endTimeRaw !== '') {
+    $endTs = strtotime($endTimeRaw);
+    if ($endTs === false) {
+        $errors['end_time'] = 'Invalid end date and time format.';
+    } else {
+        if ($startTs !== false && $endTs < $startTs) {
+            $errors['end_time'] = 'End time cannot be earlier than start time.';
+        } else {
+            $endTimeFormatted = date('Y-m-d H:i:s', $endTs);
+        }
+    }
+}
+
+// 12. Remarks Validation (Optional, max 1000 characters)
+if ($remarks !== '' && mb_strlen($remarks) > 1000) {
+    $errors['remarks'] = 'Remarks cannot exceed 1000 characters.';
+}
+
+// If validation errors exist, preserve submitted inputs and redirect back
+if (!empty($errors)) {
+    $_SESSION['_form_errors'] = $errors;
+    $_SESSION['_form_old']    = $_POST;
+    flash_set('error', 'Please resolve the validation errors below.');
+    redirect('modules/stage_progress/create.php');
+}
+
+// Execute prepared INSERT query
+try {
+    $insertSql = "INSERT INTO stage_progress 
+                    (batch_id, stage_id, input_quantity, output_quantity, start_time, end_time, status, remarks) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($insertSql);
+    if (!$stmt) {
+        error_log("Failed to prepare INSERT into stage_progress: " . $conn->error);
+        flash_set('error', 'A database error occurred while saving the stage progress record.');
+        $_SESSION['_form_old'] = $_POST;
+        redirect('modules/stage_progress/create.php');
+    }
+
+    $remarksParam = ($remarks !== '') ? $remarks : null;
+
+    $stmt->bind_param(
+        "iiiissss",
+        $batchId,
+        $stageId,
+        $inputQty,
+        $outputQty,
+        $startTimeFormatted,
+        $endTimeFormatted,
+        $status,
+        $remarksParam
+    );
+
+    $stmt->execute();
+    $newProgressId = $stmt->insert_id;
+    $stmt->close();
+
+    $stageNameText = $currentStage['stage_name'] ?? 'Stage';
+    flash_set('success', "Progress for {$stageNameText} recorded successfully.");
+    redirect('modules/stage_progress/index.php');
+} catch (mysqli_sql_exception $e) {
+    error_log("Database exception creating stage progress: " . $e->getMessage());
+    flash_set('error', 'A database error occurred while saving the stage progress record.');
+    $_SESSION['_form_old'] = $_POST;
+    redirect('modules/stage_progress/create.php');
+}
