@@ -364,6 +364,36 @@ $userRole = $currentUser['role'] ?? '';
                     </a>
                 </li>
 
+                <li>
+                    <a
+                        href="<?= e(url('modules/packing_shipment/index.php')) ?>"
+                        class="nav-link <?= $currentNav === 'packing_shipment' ? 'active' : '' ?>"
+                    >
+                        <span class="nav-link-main">
+                            <svg
+                                class="nav-icon"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <polyline points="21 8 21 21 3 21 3 8"></polyline>
+                                <rect x="1" y="3" width="22" height="5"></rect>
+                                <line x1="10" y1="12" x2="14" y2="12"></line>
+                            </svg>
+
+                            <span>Packing &amp; Shipment</span>
+                        </span>
+
+                        <span class="nav-badge badge-muted">M4</span>
+                    </a>
+                </li>
+
             <?php endif; ?>
 
         </ul>
