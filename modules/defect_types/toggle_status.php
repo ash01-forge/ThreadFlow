@@ -66,6 +66,23 @@ try {
     $updateStmt->execute();
     $updateStmt->close();
 
+    // Record audit event
+    audit_log([
+        'action'            => 'STATUS_CHANGE',
+        'module'            => 'defect_types',
+        'table_name'        => 'defect_types',
+        'record_id'         => $defectId,
+        'record_identifier' => $defect['defect_code'],
+        'old_values'        => [
+            'is_active'   => (int)$defect['is_active'],
+            'status_text' => ((int)$defect['is_active'] === 1) ? 'Active' : 'Inactive',
+        ],
+        'new_values'        => [
+            'is_active'   => $newStatus,
+            'status_text' => ($newStatus === 1) ? 'Active' : 'Inactive',
+        ],
+    ]);
+
     flash_set('success', "Defect type '{$defect['defect_code']}' has been {$statusText} successfully.");
 
     if ($fromView) {

@@ -282,6 +282,30 @@ try {
         $childStmt->close();
     }
 
+    // Record audit event inside the active transaction
+    audit_log([
+        'action'            => 'CREATE',
+        'module'            => 'quality_inspections',
+        'table_name'        => 'quality_inspections',
+        'record_id'         => $newInspectionId,
+        'record_identifier' => $inspectionNumber,
+        'old_values'        => null,
+        'new_values'        => [
+            'inspection_id'      => $newInspectionId,
+            'inspection_number'  => $inspectionNumber,
+            'batch_id'           => $batchId,
+            'inspector_id'       => $inspectorId,
+            'inspection_date'    => $inspectionDate,
+            'inspection_stage'   => $inspectionStage,
+            'inspected_quantity' => $inspectedQty,
+            'passed_quantity'    => $passedQty,
+            'defective_quantity' => $defectiveQty,
+            'overall_result'     => $overallResult,
+            'remarks'            => $remarksParam,
+            'defects'            => $cleanedDefects,
+        ],
+    ]);
+
     // Commit transaction
     $conn->commit();
 

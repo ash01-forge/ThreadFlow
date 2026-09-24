@@ -28,7 +28,7 @@ if (!$defectId || $defectId <= 0) {
 
 // Check if defect type exists
 try {
-    $checkStmt = $conn->prepare("SELECT defect_id FROM defect_types WHERE defect_id = ? LIMIT 1");
+    $checkStmt = $conn->prepare("SELECT defect_id, defect_code, defect_name, category, severity, description, is_active FROM defect_types WHERE defect_id = ? LIMIT 1");
     if (!$checkStmt) {
         error_log("Failed to prepare check statement in update: " . $conn->error);
         flash_set('error', 'A database error occurred. Please try again.');
@@ -135,6 +135,29 @@ try {
     $stmt->bind_param("sssssi", $defectCode, $defectName, $category, $severity, $descriptionParam, $defectId);
     $stmt->execute();
     $stmt->close();
+
+    // Record audit event
+    audit_log([
+        'action'            => 'UPDATE',
+        'module'            => 'defect_types',
+        'table_name'        => 'defect_types',
+        'record_id'         => $defectId,
+        'record_identifier' => $defectCode,
+        'old_values'        => [
+            'defect_code' => $existing['defect_code'],
+            'defect_name' => $existing['defect_name'],
+            'category'    => $existing['category'],
+            'severity'    => $existing['severity'],
+            'description' => $existing['description'],
+        ],
+        'new_values'        => [
+            'defect_code' => $defectCode,
+            'defect_name' => $defectName,
+            'category'    => $category,
+            'severity'    => $severity,
+            'description' => $descriptionParam,
+        ],
+    ]);
 
     flash_set('success', "Defect type '{$defectCode}' updated successfully.");
     redirect('modules/defect_types/view.php?id=' . $defectId);

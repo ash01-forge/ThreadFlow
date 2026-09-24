@@ -63,8 +63,15 @@ try {
         inspection_id,
         batch_id,
         packed_quantity,
+        carton_count,
         packing_date,
-        status
+        shipping_date,
+        shipping_method,
+        carrier_name,
+        tracking_number,
+        destination,
+        status,
+        notes
     FROM packing_shipments
     WHERE packing_id = ?
     FOR UPDATE";
@@ -325,6 +332,39 @@ try {
 
     $updStmt->execute();
     $updStmt->close();
+
+    // Record audit event inside the active transaction
+    audit_log([
+        'action'            => 'UPDATE',
+        'module'            => 'packing_shipment',
+        'table_name'        => 'packing_shipments',
+        'record_id'         => $packingId,
+        'record_identifier' => $currentRecord['packing_number'],
+        'old_values'        => [
+            'packed_quantity' => isset($currentRecord['packed_quantity']) ? (int)$currentRecord['packed_quantity'] : null,
+            'carton_count'    => isset($currentRecord['carton_count']) ? (int)$currentRecord['carton_count'] : null,
+            'packing_date'    => $currentRecord['packing_date'] ?? null,
+            'shipping_date'   => $currentRecord['shipping_date'] ?? null,
+            'shipping_method' => $currentRecord['shipping_method'] ?? null,
+            'carrier_name'    => $currentRecord['carrier_name'] ?? null,
+            'tracking_number' => $currentRecord['tracking_number'] ?? null,
+            'destination'     => $currentRecord['destination'] ?? null,
+            'status'          => $currentRecord['status'] ?? null,
+            'notes'           => $currentRecord['notes'] ?? null,
+        ],
+        'new_values'        => [
+            'packed_quantity' => $finalPackedQuantity,
+            'carton_count'    => $cartonCount,
+            'packing_date'    => $finalPackingDate,
+            'shipping_date'   => $shippingDateVal,
+            'shipping_method' => $shippingMethod,
+            'carrier_name'    => $carrierParam,
+            'tracking_number' => $trackingParam,
+            'destination'     => $destination,
+            'status'          => $requestedStatus,
+            'notes'           => $notesParam,
+        ],
+    ]);
 
     $conn->commit();
 

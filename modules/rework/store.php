@@ -266,6 +266,30 @@ try {
     $newReworkId = $conn->insert_id;
     $stmt->close();
 
+    // Record audit event inside the active transaction
+    audit_log([
+        'action'            => 'CREATE',
+        'module'            => 'rework',
+        'table_name'        => 'rework_jobs',
+        'record_id'         => $newReworkId,
+        'record_identifier' => $reworkNumber,
+        'old_values'        => null,
+        'new_values'        => [
+            'rework_id'              => $newReworkId,
+            'rework_number'          => $reworkNumber,
+            'inspection_defect_id'   => $inspectionDefectId,
+            'line_id'                => $lineId,
+            'assigned_to'            => $assignedTo,
+            'rework_quantity'        => $finalReworkQty,
+            'assigned_date'          => $assignedDate,
+            'target_completion_date' => $targetDate,
+            'status'                 => $status,
+            'corrective_action'      => $correctiveParam,
+            'remarks'                => $remarksParam,
+            'created_by'             => $createdBy,
+        ],
+    ]);
+
     $conn->commit();
 
     flash_set('success', "Rework job '{$reworkNumber}' created and assigned successfully ({$finalReworkQty} pcs).");

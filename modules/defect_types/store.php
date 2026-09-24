@@ -108,6 +108,25 @@ try {
     $newId = $stmt->insert_id;
     $stmt->close();
 
+    // Record audit event
+    audit_log([
+        'action'            => 'CREATE',
+        'module'            => 'defect_types',
+        'table_name'        => 'defect_types',
+        'record_id'         => $newId,
+        'record_identifier' => $defectCode,
+        'old_values'        => null,
+        'new_values'        => [
+            'defect_id'   => $newId,
+            'defect_code' => $defectCode,
+            'defect_name' => $defectName,
+            'category'    => $category,
+            'severity'    => $severity,
+            'description' => $descriptionParam,
+            'is_active'   => 1,
+        ],
+    ]);
+
     flash_set('success', "Defect type '{$defectCode}' created successfully.");
     redirect('modules/defect_types/index.php');
 } catch (mysqli_sql_exception $e) {
