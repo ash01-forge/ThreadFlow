@@ -137,6 +137,23 @@ try {
     $updStmt->execute();
     $updStmt->close();
 
+    // Record audit event inside the active transaction
+    audit_log([
+        'action'            => 'STATUS_CHANGE',
+        'module'            => 'packing_shipment',
+        'table_name'        => 'packing_shipments',
+        'record_id'         => $packingId,
+        'record_identifier' => $packingNumber,
+        'old_values'        => [
+            'status'        => $currentStatus,
+            'shipping_date' => $currentRecord['shipping_date'],
+        ],
+        'new_values'        => [
+            'status'        => $requestedNext,
+            'shipping_date' => $resolvedShippingDate,
+        ],
+    ]);
+
     // 6. Commit transaction
     $conn->commit();
 

@@ -28,7 +28,7 @@ if (!$inspectionId || $inspectionId <= 0) {
 
 // Verify existence of record
 try {
-    $cStmt = $conn->prepare("SELECT inspection_id FROM quality_inspections WHERE inspection_id = ? LIMIT 1");
+    $cStmt = $conn->prepare("SELECT inspection_id, inspection_number, batch_id, inspector_id, inspection_date, inspection_stage, inspected_quantity, passed_quantity, defective_quantity, overall_result, remarks FROM quality_inspections WHERE inspection_id = ? LIMIT 1");
     if (!$cStmt) {
         throw new Exception($conn->error);
     }
@@ -41,6 +41,16 @@ try {
     if (!$existing) {
         flash_set('error', 'Quality inspection record not found.');
         redirect('modules/quality_inspections/index.php');
+    }
+
+    // Retrieve existing defects breakdown for audit diff
+    $existingDefects = [];
+    $dOldStmt = $conn->prepare("SELECT defect_id, defect_count, notes FROM inspection_defects WHERE inspection_id = ?");
+    if ($dOldStmt) {
+        $dOldStmt->bind_param("i", $inspectionId);
+        $dOldStmt->execute();
+        $existingDefects = $dOldStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $dOldStmt->close();
     }
 } catch (Exception $e) {
     error_log("Error verifying inspection existence: " . $e->getMessage());
@@ -305,6 +315,39 @@ try {
         }
         $insChild->close();
     }
+
+    // Record audit event inside the active transaction
+    audit_log([
+        'action'            => 'UPDATE',
+        'module'            => 'quality_inspections',
+        'table_name'        => 'quality_inspections',
+        'record_id'         => $inspectionId,
+        'record_identifier' => $inspectionNumber,
+        'old_values'        => [
+            'inspection_number'  => $existing['inspection_number'],
+            'batch_id'           => (int)$existing['batch_id'],
+            'inspection_date'    => $existing['inspection_date'],
+            'inspection_stage'   => $existing['inspection_stage'],
+            'inspected_quantity' => (int)$existing['inspected_quantity'],
+            'passed_quantity'    => (int)$existing['passed_quantity'],
+            'defective_quantity' => (int)$existing['defective_quantity'],
+            'overall_result'     => $existing['overall_result'],
+            'remarks'            => $existing['remarks'],
+            'defects'            => $existingDefects,
+        ],
+        'new_values'        => [
+            'inspection_number'  => $inspectionNumber,
+            'batch_id'           => $batchId,
+            'inspection_date'    => $inspectionDate,
+            'inspection_stage'   => $inspectionStage,
+            'inspected_quantity' => $inspectedQty,
+            'passed_quantity'    => $passedQty,
+            'defective_quantity' => $defectiveQty,
+            'overall_result'     => $overallResult,
+            'remarks'            => $remarksParam,
+            'defects'            => $cleanedDefects,
+        ],
+    ]);
 
     // Commit transaction
     $conn->commit();

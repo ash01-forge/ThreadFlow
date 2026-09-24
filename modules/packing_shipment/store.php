@@ -261,6 +261,33 @@ try {
     $newPackingId = $conn->insert_id;
     $stmt->close();
 
+    // Record audit event inside the active transaction
+    audit_log([
+        'action'            => 'CREATE',
+        'module'            => 'packing_shipment',
+        'table_name'        => 'packing_shipments',
+        'record_id'         => $newPackingId,
+        'record_identifier' => $packingNumber,
+        'old_values'        => null,
+        'new_values'        => [
+            'packing_id'      => $newPackingId,
+            'packing_number'  => $packingNumber,
+            'batch_id'        => $derivedBatchId,
+            'inspection_id'   => $inspectionId,
+            'packed_quantity' => $packedQuantity,
+            'carton_count'    => $cartonCount,
+            'packing_date'    => $packingDate,
+            'shipping_date'   => $shippingDateVal,
+            'shipping_method' => $shippingMethod,
+            'carrier_name'    => $carrierParam,
+            'tracking_number' => $trackingParam,
+            'destination'     => $destination,
+            'status'          => $status,
+            'notes'           => $notesParam,
+            'created_by'      => $createdBy,
+        ],
+    ]);
+
     // Commit the active transaction
     $conn->commit();
 

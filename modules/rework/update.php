@@ -51,14 +51,14 @@ if ($reworkNumber === '') {
     $errors['rework_number'] = 'Rework Number missing.';
 } else {
     // Ensure the number belongs to this job (prevent tampering)
-    $checkStmt = $conn->prepare('SELECT rework_id FROM rework_jobs WHERE rework_number = ? LIMIT 1');
+    $checkStmt = $conn->prepare('SELECT rework_id, rework_number, inspection_defect_id, line_id, assigned_to, rework_quantity, assigned_date, target_completion_date, completed_quantity, rejected_quantity, actual_completion_date, status, corrective_action, remarks, created_by FROM rework_jobs WHERE rework_number = ? LIMIT 1');
     if ($checkStmt) {
         $checkStmt->bind_param('s', $reworkNumber);
         $checkStmt->execute();
         $res = $checkStmt->get_result();
-        $row = $res->fetch_assoc();
+        $existingJob = $res->fetch_assoc();
         $checkStmt->close();
-        if (!$row || (int)$row['rework_id'] !== $reworkId) {
+        if (!$existingJob || (int)$existingJob['rework_id'] !== $reworkId) {
             $errors['rework_number'] = 'Rework Number does not match the selected job.';
         }
     } else {
@@ -239,6 +239,43 @@ try {
     );
     $updStmt->execute();
     $updStmt->close();
+
+    // Record audit event inside the active transaction
+    audit_log([
+        'action'            => 'UPDATE',
+        'module'            => 'rework',
+        'table_name'        => 'rework_jobs',
+        'record_id'         => $reworkId,
+        'record_identifier' => $reworkNumber,
+        'old_values'        => [
+            'inspection_defect_id'   => isset($existingJob['inspection_defect_id']) ? (int)$existingJob['inspection_defect_id'] : null,
+            'line_id'                => isset($existingJob['line_id']) && $existingJob['line_id'] !== null ? (int)$existingJob['line_id'] : null,
+            'assigned_to'            => $existingJob['assigned_to'] ?? null,
+            'rework_quantity'        => isset($existingJob['rework_quantity']) ? (int)$existingJob['rework_quantity'] : null,
+            'assigned_date'          => $existingJob['assigned_date'] ?? null,
+            'target_completion_date' => $existingJob['target_completion_date'] ?? null,
+            'completed_quantity'     => isset($existingJob['completed_quantity']) ? (int)$existingJob['completed_quantity'] : null,
+            'rejected_quantity'      => isset($existingJob['rejected_quantity']) ? (int)$existingJob['rejected_quantity'] : null,
+            'actual_completion_date' => $existingJob['actual_completion_date'] ?? null,
+            'status'                 => $existingJob['status'] ?? null,
+            'corrective_action'      => $existingJob['corrective_action'] ?? null,
+            'remarks'                => $existingJob['remarks'] ?? null,
+        ],
+        'new_values'        => [
+            'inspection_defect_id'   => $inspectionDefectId,
+            'line_id'                => $lineId,
+            'assigned_to'            => $assignedTo,
+            'rework_quantity'        => $reworkQuantity,
+            'assigned_date'          => $assignedDate,
+            'target_completion_date' => $targetCompletionDate,
+            'completed_quantity'     => $completedQuantity,
+            'rejected_quantity'      => $rejectedQuantity,
+            'actual_completion_date' => $actualCompletionDate ?: null,
+            'status'                 => $status,
+            'corrective_action'      => $correctiveAction ?: null,
+            'remarks'                => $remarks ?: null,
+        ],
+    ]);
 
     // Commit transaction
     $conn->commit();
