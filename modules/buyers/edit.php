@@ -61,27 +61,29 @@ include __DIR__ . '/../../includes/header.php';
 include __DIR__ . '/../../includes/sidebar.php';
 ?>
 
-<div class="page-header">
-    <div class="page-title-group">
-        <h1>Edit Buyer</h1>
-        <div class="page-subtitle">Update profile for Buyer #<?= (int) $buyer['buyer_id'] ?> &bull; <?= e($buyer['buyer_name']) ?></div>
-    </div>
-    <div class="page-actions">
-        <a href="<?= e(url('modules/buyers/view.php?id=' . (int)$buyer['buyer_id'])) ?>" class="btn btn-secondary">View Profile</a>
-        <a href="<?= e(url('modules/buyers/index.php')) ?>" class="btn btn-secondary">Back to List</a>
-    </div>
-</div>
-
-<div class="card card-form">
-    <div class="card-header">
-        <h2>Edit Buyer Details</h2>
-    </div>
-    <div class="card-body">
-        <form action="<?= e(url('modules/buyers/update.php')) ?>" method="post" novalidate>
-            <?= csrf_field() ?>
-            <input type="hidden" name="buyer_id" value="<?= (int) $buyer['buyer_id'] ?>">
-
-            <div class="form-group">
+<style>
+.buyers-edit { --buyers-ink: #3c1b25; --buyers-muted: #806b72; --buyers-line: #efd9df; --buyers-soft: #fff7f8; }
+.buyers-edit .buyers-edit-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 20px; }
+.buyers-edit .buyers-kicker { color: #9b5363; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.buyers-edit .buyers-summary { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 10px; max-width: 920px; margin-bottom: 20px; }
+.buyers-edit .buyers-summary-card { padding: 14px; border: 1px solid var(--buyers-line); border-radius: 10px; background: #fffafd; }
+.buyers-edit .buyers-summary-card small { display: block; color: var(--buyers-muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; }
+.buyers-edit .buyers-summary-card strong { display: block; margin-top: 5px; color: var(--buyers-ink); overflow-wrap: anywhere; }
+.buyers-edit .buyers-form-card { max-width: 920px; overflow: hidden; border: 1px solid var(--buyers-line); border-radius: 14px; background: #fff; }
+.buyers-edit .buyers-section { padding: 24px; border-bottom: 1px solid var(--buyers-line); }
+.buyers-edit .buyers-section-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 20px; }
+.buyers-edit .buyers-step { display: grid; place-items: center; flex: 0 0 30px; width: 30px; height: 30px; border-radius: 50%; color: #fff; background: #78000f; font-weight: 700; }
+.buyers-edit .buyers-section h2 { margin: 0 0 4px; color: var(--buyers-ink); font-size: 1.1rem; }
+.buyers-edit .buyers-section-head p { margin: 0; color: var(--buyers-muted); font-size: .84rem; }
+.buyers-edit .buyers-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.buyers-edit .buyers-fields .form-group { margin: 0; }
+.buyers-edit .buyers-wide { grid-column: 1 / -1; }
+.buyers-edit .buyers-submit { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 24px; background: var(--buyers-soft); }
+.buyers-edit .buyers-submit .form-actions { margin: 0; }
+@media (max-width: 700px) { .buyers-edit .buyers-edit-head { display: block; } .buyers-edit .buyers-edit-head .page-actions { margin-top: 14px; } .buyers-edit .buyers-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } .buyers-edit .buyers-fields { grid-template-columns: 1fr; } .buyers-edit .buyers-wide { grid-column: auto; } .buyers-edit .buyers-submit { display: block; } .buyers-edit .buyers-submit .form-actions { margin-top: 14px; } .buyers-edit .buyers-submit .btn { width: 100%; margin-bottom: 8px; } }
+</style>
+<div class="buyers-edit"><div class="buyers-edit-head"><div><div class="buyers-kicker">Buyer maintenance</div><div class="page-title-group"><h1>Edit Buyer</h1><div class="page-subtitle">Update profile for Buyer #<?= (int) $buyer['buyer_id'] ?> &bull; <?= e($buyer['buyer_name']) ?></div></div></div><div class="page-actions"><a href="<?= e(url('modules/buyers/view.php?id=' . (int)$buyer['buyer_id'])) ?>" class="btn btn-secondary">View Profile</a><a href="<?= e(url('modules/buyers/index.php')) ?>" class="btn btn-secondary">Back to List</a></div></div><div class="buyers-summary"><div class="buyers-summary-card"><small>Buyer</small><strong><?= e($buyer['buyer_name']) ?></strong></div><div class="buyers-summary-card"><small>Status</small><strong><?= (int) $buyer['is_active'] === 1 ? 'Active' : 'Inactive' ?></strong></div><div class="buyers-summary-card"><small>Country</small><strong><?= e($buyer['country'] ?: 'Not specified') ?></strong></div><div class="buyers-summary-card"><small>Buyer ID</small><strong>#<?= (int) $buyer['buyer_id'] ?></strong></div></div>
+<div class="buyers-form-card"><form action="<?= e(url('modules/buyers/update.php')) ?>" method="post" novalidate><?= csrf_field() ?><input type="hidden" name="buyer_id" value="<?= (int) $buyer['buyer_id'] ?>"><section class="buyers-section"><div class="buyers-section-head"><span class="buyers-step">1</span><div><h2>Company Identity</h2><p>Update the buyer organization name used across ThreadFlow.</p></div></div><div class="buyers-fields"><div class="form-group buyers-wide">
                 <label for="buyer_name" class="form-label">Buyer Name <span class="required">*</span></label>
                 <input type="text"
                        id="buyer_name"
@@ -95,9 +97,7 @@ include __DIR__ . '/../../includes/sidebar.php';
                     <span class="form-error"><?= e($errors['buyer_name']) ?></span>
                 <?php endif; ?>
                 <span class="form-text">Primary organizational or corporate buyer name (maximum 150 characters).</span>
-            </div>
-
-            <div class="form-group">
+            </div></div></section><section class="buyers-section"><div class="buyers-section-head"><span class="buyers-step">2</span><div><h2>Contact Information</h2><p>Maintain the representative and communication channels.</p></div></div><div class="buyers-fields"><div class="form-group">
                 <label for="contact_person" class="form-label">Contact Person</label>
                 <input type="text"
                        id="contact_person"
@@ -110,9 +110,7 @@ include __DIR__ . '/../../includes/sidebar.php';
                     <span class="form-error"><?= e($errors['contact_person']) ?></span>
                 <?php endif; ?>
                 <span class="form-text">Primary representative or merchandiser contact (maximum 100 characters).</span>
-            </div>
-
-            <div class="form-group">
+            </div><div class="form-group">
                 <label for="email" class="form-label">Email</label>
                 <input type="email"
                        id="email"
@@ -125,9 +123,7 @@ include __DIR__ . '/../../includes/sidebar.php';
                     <span class="form-error"><?= e($errors['email']) ?></span>
                 <?php endif; ?>
                 <span class="form-text">Official contact email for correspondence and purchase orders.</span>
-            </div>
-
-            <div class="form-group">
+            </div><div class="form-group">
                 <label for="phone" class="form-label">Phone</label>
                 <input type="text"
                        id="phone"
@@ -140,9 +136,7 @@ include __DIR__ . '/../../includes/sidebar.php';
                     <span class="form-error"><?= e($errors['phone']) ?></span>
                 <?php endif; ?>
                 <span class="form-text">Contact telephone or direct mobile line (maximum 30 characters).</span>
-            </div>
-
-            <div class="form-group">
+            </div></div></section><section class="buyers-section"><div class="buyers-section-head"><span class="buyers-step">3</span><div><h2>Address / Location</h2><p>Keep the buyer’s headquarters, sourcing, or billing location current.</p></div></div><div class="buyers-fields"><div class="form-group">
                 <label for="country" class="form-label">Country</label>
                 <input type="text"
                        id="country"
@@ -168,15 +162,10 @@ include __DIR__ . '/../../includes/sidebar.php';
                     <span class="form-error"><?= e($errors['address']) ?></span>
                 <?php endif; ?>
                 <span class="form-text">Full office, warehouse, or billing postal address.</span>
-            </div>
-
-            <div class="form-actions">
+            </div></div></section><div class="buyers-submit"><div><strong>Ready to save?</strong><p>Changes will use the existing buyer update workflow.</p></div><div class="form-actions">
                 <button type="submit" class="btn btn-primary">Update Buyer</button>
                 <a href="<?= e(url('modules/buyers/view.php?id=' . (int)$buyer['buyer_id'])) ?>" class="btn btn-secondary">Cancel</a>
-            </div>
-        </form>
-    </div>
-</div>
+            </div></div></form></div></div>
 
 <?php
 include __DIR__ . '/../../includes/footer.php';

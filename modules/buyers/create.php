@@ -21,25 +21,26 @@ include __DIR__ . '/../../includes/header.php';
 include __DIR__ . '/../../includes/sidebar.php';
 ?>
 
-<div class="page-header">
-    <div class="page-title-group">
-        <h1>Add Buyer</h1>
-        <div class="page-subtitle">Module 1 &bull; Ownership: Member 1 &bull; Access: Admin, Merchandiser</div>
-    </div>
-    <div class="page-actions">
-        <a href="<?= e(url('modules/buyers/index.php')) ?>" class="btn btn-secondary">Back to Buyer List</a>
-    </div>
-</div>
-
-<div class="card card-form">
-    <div class="card-header">
-        <h2>New Buyer Details</h2>
-    </div>
-    <div class="card-body">
-        <form action="<?= e(url('modules/buyers/store.php')) ?>" method="post" novalidate>
-            <?= csrf_field() ?>
-
-            <div class="form-group">
+<style>
+.buyers-form { --buyers-ink: #3c1b25; --buyers-muted: #806b72; --buyers-line: #efd9df; --buyers-soft: #fff7f8; }
+.buyers-form .buyers-form-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 24px; }
+.buyers-form .buyers-kicker { color: #9b5363; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.buyers-form .buyers-form-card { max-width: 920px; overflow: hidden; border: 1px solid var(--buyers-line); border-radius: 14px; background: #fff; }
+.buyers-form .buyers-section { padding: 24px; border-bottom: 1px solid var(--buyers-line); }
+.buyers-form .buyers-section-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 20px; }
+.buyers-form .buyers-step { display: grid; place-items: center; flex: 0 0 30px; width: 30px; height: 30px; border-radius: 50%; color: #fff; background: #78000f; font-weight: 700; }
+.buyers-form .buyers-section h2 { margin: 0 0 4px; color: var(--buyers-ink); font-size: 1.1rem; }
+.buyers-form .buyers-section-head p { margin: 0; color: var(--buyers-muted); font-size: .84rem; }
+.buyers-form .buyers-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.buyers-form .buyers-fields .form-group { margin: 0; }
+.buyers-form .buyers-wide { grid-column: 1 / -1; }
+.buyers-form .buyers-submit { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 24px; background: var(--buyers-soft); }
+.buyers-form .buyers-submit p { margin: 0; color: var(--buyers-muted); font-size: .82rem; }
+.buyers-form .buyers-submit .form-actions { margin: 0; }
+@media (max-width: 650px) { .buyers-form .buyers-form-head { display: block; } .buyers-form .buyers-form-head .page-actions { margin-top: 14px; } .buyers-form .buyers-fields { grid-template-columns: 1fr; } .buyers-form .buyers-wide { grid-column: auto; } .buyers-form .buyers-submit { display: block; } .buyers-form .buyers-submit .form-actions { margin-top: 14px; } .buyers-form .buyers-submit .btn { width: 100%; margin-bottom: 8px; } }
+</style>
+<div class="buyers-form"><div class="buyers-form-head"><div><div class="buyers-kicker">Buyer onboarding</div><div class="page-title-group"><h1>Add Buyer</h1><div class="page-subtitle">Create a buyer profile for merchandising and production workflows.</div></div></div><div class="page-actions"><a href="<?= e(url('modules/buyers/index.php')) ?>" class="btn btn-secondary">Back to Buyer List</a></div></div>
+<div class="buyers-form-card"><form action="<?= e(url('modules/buyers/store.php')) ?>" method="post" novalidate><?= csrf_field() ?><section class="buyers-section"><div class="buyers-section-head"><span class="buyers-step">1</span><div><h2>Company Identity</h2><p>Start with the organization name used across ThreadFlow.</p></div></div><div class="buyers-fields"><div class="form-group buyers-wide">
                 <label for="buyer_name" class="form-label">Buyer Name <span class="required">*</span></label>
                 <input type="text"
                        id="buyer_name"
@@ -53,9 +54,7 @@ include __DIR__ . '/../../includes/sidebar.php';
                     <span class="form-error"><?= e($errors['buyer_name']) ?></span>
                 <?php endif; ?>
                 <span class="form-text">Primary organizational or corporate buyer name (maximum 150 characters).</span>
-            </div>
-
-            <div class="form-group">
+            </div></div></section><section class="buyers-section"><div class="buyers-section-head"><span class="buyers-step">2</span><div><h2>Contact Information</h2><p>Provide the primary representative and direct communication channels.</p></div></div><div class="buyers-fields"><div class="form-group">
                 <label for="contact_person" class="form-label">Contact Person</label>
                 <input type="text"
                        id="contact_person"
@@ -68,9 +67,7 @@ include __DIR__ . '/../../includes/sidebar.php';
                     <span class="form-error"><?= e($errors['contact_person']) ?></span>
                 <?php endif; ?>
                 <span class="form-text">Primary representative or merchandiser contact (maximum 100 characters).</span>
-            </div>
-
-            <div class="form-group">
+            </div><div class="form-group">
                 <label for="email" class="form-label">Email</label>
                 <input type="email"
                        id="email"
@@ -83,9 +80,7 @@ include __DIR__ . '/../../includes/sidebar.php';
                     <span class="form-error"><?= e($errors['email']) ?></span>
                 <?php endif; ?>
                 <span class="form-text">Official contact email for correspondence and purchase orders.</span>
-            </div>
-
-            <div class="form-group">
+            </div><div class="form-group">
                 <label for="phone" class="form-label">Phone</label>
                 <input type="text"
                        id="phone"
@@ -98,9 +93,7 @@ include __DIR__ . '/../../includes/sidebar.php';
                     <span class="form-error"><?= e($errors['phone']) ?></span>
                 <?php endif; ?>
                 <span class="form-text">Contact telephone or direct mobile line (maximum 30 characters).</span>
-            </div>
-
-            <div class="form-group">
+            </div></div></section><section class="buyers-section"><div class="buyers-section-head"><span class="buyers-step">3</span><div><h2>Address / Location</h2><p>Record the buyer’s headquarters, sourcing, or billing location.</p></div></div><div class="buyers-fields"><div class="form-group">
                 <label for="country" class="form-label">Country</label>
                 <input type="text"
                        id="country"
@@ -126,15 +119,10 @@ include __DIR__ . '/../../includes/sidebar.php';
                     <span class="form-error"><?= e($errors['address']) ?></span>
                 <?php endif; ?>
                 <span class="form-text">Full office, warehouse, or billing postal address.</span>
-            </div>
-
-            <div class="form-actions">
+            </div></div></section><div class="buyers-submit"><div><strong>Ready to save?</strong><p>The buyer will be available for the existing workflow.</p></div><div class="form-actions">
                 <button type="submit" class="btn btn-primary">Save Buyer</button>
                 <a href="<?= e(url('modules/buyers/index.php')) ?>" class="btn btn-secondary">Cancel</a>
-            </div>
-        </form>
-    </div>
-</div>
+            </div></div></form></div></div>
 
 <?php
 include __DIR__ . '/../../includes/footer.php';

@@ -35,16 +35,40 @@ $currentNav = 'orders';
 include __DIR__ . '/../../includes/header.php';
 include __DIR__ . '/../../includes/sidebar.php';
 ?>
-<div class="page-header"><div class="page-title-group"><h1>Order Details</h1><div class="page-subtitle">Order #<?= (int) $order['order_id'] ?> &bull; <?= e($order['order_number']) ?></div></div><div class="page-actions"><a href="<?= e(url('modules/orders/edit.php?id=' . (int) $order['order_id'])) ?>" class="btn btn-primary">Edit Order</a><a href="<?= e(url('modules/orders/index.php')) ?>" class="btn btn-secondary">Back to List</a></div></div>
-<div class="card"><div class="card-header"><h2><?= e($order['order_number']) ?></h2><span class="badge badge-muted"><?= e($order['status']) ?></span></div><div class="card-body"><div class="details-grid">
-    <div><span class="form-label">Buyer</span><p><a href="<?= e(url('modules/buyers/view.php?id=' . (int) $order['buyer_id'])) ?>"><?= e($order['buyer_name']) ?></a></p></div>
-    <div><span class="form-label">Style Number</span><p><?= e($order['style_number']) ?></p></div>
-    <div><span class="form-label">Total Quantity</span><p><?= number_format((int) $order['total_quantity']) ?> pcs</p></div>
-    <div><span class="form-label">Order Status</span><p><?= e($order['status']) ?></p></div>
-    <div><span class="form-label">Order Date</span><p><?= e($order['order_date'] ?: 'Not specified') ?></p></div>
-    <div><span class="form-label">Delivery Date</span><p><?= e($order['delivery_date'] ?: 'Not specified') ?></p></div>
-    <div><span class="form-label">Created</span><p><?= e($order['created_at']) ?></p></div>
-    <div><span class="form-label">Last Updated</span><p><?= e($order['updated_at']) ?></p></div>
-</div></div></div>
-<div class="card"><div class="card-header"><h2>Order Items</h2><span class="badge badge-muted">Total: <?= number_format((int) $order['total_quantity']) ?> pcs</span></div><div class="card-body"><div class="table-responsive"><table class="table" style="width:100%; min-width:620px;"><thead><tr><th scope="col" style="width:40%;">Style</th><th scope="col" style="width:25%;">Color</th><th scope="col" style="width:20%;">Size</th><th scope="col" style="width:15%; text-align:right;">Quantity</th></tr></thead><tbody><?php foreach ($items as $item): ?><tr><td><?= e($item['style_number']) ?></td><td><?= e($item['color'] ?: 'Not specified') ?></td><td><?= e($item['size'] ?: 'Not specified') ?></td><td style="text-align:right;"> <?= number_format((int) $item['quantity']) ?></td></tr><?php endforeach; ?></tbody></table></div></div></div>
+<style>
+.orders-view { --orders-ink: #3c1b25; --orders-muted: #806b72; --orders-line: #efd9df; }
+.orders-view .orders-hero { padding: 24px; margin-bottom: 20px; border-radius: 14px; color: #fff; background: linear-gradient(120deg, #78000f, #a83c51); }
+.orders-view .orders-hero .page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 22px; margin: 0; }
+.orders-view .orders-kicker { margin-bottom: 7px; color: #f9dfe4; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.orders-view .orders-hero h1 { margin-bottom: 6px; color: #fff; }
+.orders-view .orders-hero .page-subtitle { color: #f9dfe4; }
+.orders-view .orders-hero .page-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.orders-view .orders-hero .btn-primary { color: #78000f; background: #fff; border-color: #fff; box-shadow: 0 3px 10px rgba(48, 0, 10, .2); }
+.orders-view .orders-hero .btn-primary:hover { color: #5c000c; background: #fff4f6; border-color: #fff4f6; }
+.orders-view .orders-hero .btn-secondary { color: #fff; background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .75); }
+.orders-view .orders-hero .btn-secondary:hover { color: #fff; background: rgba(255, 255, 255, .2); border-color: #fff; }
+.orders-view .orders-hero-summary { display: grid; grid-template-columns: 1.4fr repeat(5, 1fr); gap: 8px; margin-top: 22px; }
+.orders-view .orders-hero-stat { padding: 12px; border: 1px solid rgba(255, 255, 255, .25); border-radius: 9px; background: rgba(255, 255, 255, .1); }
+.orders-view .orders-hero-stat small { display: block; color: #f9dfe4; font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; }
+.orders-view .orders-hero-stat strong { display: block; margin-top: 4px; color: #fff; font-size: .9rem; overflow-wrap: anywhere; }
+.orders-view .orders-panel { overflow: hidden; margin-bottom: 18px; border: 1px solid var(--orders-line); border-radius: 13px; background: #fff; }
+.orders-view .orders-panel-head { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 17px 20px; border-bottom: 1px solid var(--orders-line); }
+.orders-view .orders-panel-head h2 { margin: 0; color: var(--orders-ink); font-size: 1.08rem; }
+.orders-view .orders-panel-body { padding: 20px; }
+.orders-view .orders-meta-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.orders-view .orders-meta-card { padding: 15px; border: 1px solid var(--orders-line); border-radius: 10px; background: #fffafd; }
+.orders-view .orders-meta-card small { display: block; color: var(--orders-muted); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.orders-view .orders-meta-card p { margin: 7px 0 0; color: var(--orders-ink); font-size: .9rem; overflow-wrap: anywhere; }
+.orders-view .orders-items { display: grid; gap: 10px; }
+.orders-view .orders-item { display: grid; grid-template-columns: 1.4fr 1fr 1fr .7fr; gap: 14px; align-items: center; padding: 15px 16px; border: 1px solid var(--orders-line); border-radius: 10px; }
+.orders-view .orders-item div { min-width: 0; }
+.orders-view .orders-item small { display: block; color: var(--orders-muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; }
+.orders-view .orders-item strong { display: block; margin-top: 4px; color: var(--orders-ink); overflow-wrap: anywhere; }
+.orders-view .orders-item-quantity { text-align: right; }
+@media (max-width: 900px) { .orders-view .orders-hero-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); } .orders-view .orders-meta-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .orders-view .orders-hero .page-header { display: block; } .orders-view .orders-hero .page-actions { margin-top: 16px; } .orders-view .orders-hero .page-actions .btn { width: 100%; margin-bottom: 7px; text-align: center; } .orders-view .orders-hero-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } .orders-view .orders-meta-grid { grid-template-columns: 1fr; } .orders-view .orders-item { grid-template-columns: repeat(2, minmax(0, 1fr)); } .orders-view .orders-item-quantity { text-align: left; } }
+</style>
+<div class="orders-view"><div class="orders-hero"><div class="page-header"><div class="page-title-group"><div class="orders-kicker">Order dossier</div><h1><?= e($order['order_number']) ?></h1><div class="page-subtitle">Order ID #<?= (int) $order['order_id'] ?> &bull; Buyer order record</div></div><div class="page-actions"><a href="<?= e(url('modules/orders/edit.php?id=' . (int) $order['order_id'])) ?>" class="btn btn-primary">Edit Order</a><a href="<?= e(url('modules/orders/index.php')) ?>" class="btn btn-secondary">Back to List</a></div></div><div class="orders-hero-summary"><div class="orders-hero-stat"><small>Buyer</small><strong><?= e($order['buyer_name']) ?></strong></div><div class="orders-hero-stat"><small>Status</small><strong><?= e($order['status']) ?></strong></div><div class="orders-hero-stat"><small>Total Quantity</small><strong><?= number_format((int) $order['total_quantity']) ?> pcs</strong></div><div class="orders-hero-stat"><small>Order Date</small><strong><?= e($order['order_date'] ?: 'Not specified') ?></strong></div><div class="orders-hero-stat"><small>Delivery Date</small><strong><?= e($order['delivery_date'] ?: 'Not specified') ?></strong></div></div></div>
+<div class="orders-panel"><div class="orders-panel-head"><h2>Order Summary</h2><span class="badge <?= $order['status'] === 'Completed' ? 'badge-success' : ($order['status'] === 'Cancelled' ? 'badge-danger' : 'badge-warning') ?>"><?= e($order['status']) ?></span></div><div class="orders-panel-body"><div class="orders-meta-grid"><div class="orders-meta-card"><small>Buyer</small><p><a href="<?= e(url('modules/buyers/view.php?id=' . (int) $order['buyer_id'])) ?>"><?= e($order['buyer_name']) ?></a></p></div><div class="orders-meta-card"><small>Style Number</small><p><?= e($order['style_number']) ?></p></div><div class="orders-meta-card"><small>Total Quantity</small><p><?= number_format((int) $order['total_quantity']) ?> pcs</p></div><div class="orders-meta-card"><small>Order Status</small><p><?= e($order['status']) ?></p></div><div class="orders-meta-card"><small>Order Date</small><p><?= e($order['order_date'] ?: 'Not specified') ?></p></div><div class="orders-meta-card"><small>Delivery Date</small><p><?= e($order['delivery_date'] ?: 'Not specified') ?></p></div><div class="orders-meta-card"><small>Created</small><p><?= e($order['created_at']) ?></p></div><div class="orders-meta-card"><small>Last Updated</small><p><?= e($order['updated_at']) ?></p></div></div></div></div>
+<div class="orders-panel"><div class="orders-panel-head"><h2>Order Items</h2><span class="badge badge-muted">Total: <?= number_format((int) $order['total_quantity']) ?> pcs</span></div><div class="orders-panel-body"><div class="orders-items"><?php foreach ($items as $item): ?><div class="orders-item"><div><small>Style</small><strong><?= e($item['style_number']) ?></strong></div><div><small>Color</small><strong><?= e($item['color'] ?: 'Not specified') ?></strong></div><div><small>Size</small><strong><?= e($item['size'] ?: 'Not specified') ?></strong></div><div class="orders-item-quantity"><small>Quantity</small><strong><?= number_format((int) $item['quantity']) ?> pcs</strong></div></div><?php endforeach; ?></div></div></div></div>
 <?php include __DIR__ . '/../../includes/footer.php'; ?>
