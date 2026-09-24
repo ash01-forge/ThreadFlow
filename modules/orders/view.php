@@ -17,6 +17,14 @@ try {
         flash_set('error', 'Order record not found.');
         redirect('modules/orders/index.php');
     }
+    $itemStmt = $conn->prepare('SELECT style_number, color, size, quantity FROM order_items WHERE order_id = ? ORDER BY item_id ASC');
+    $itemStmt->bind_param('i', $orderId);
+    $itemStmt->execute();
+    $items = $itemStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $itemStmt->close();
+    if (!$items) {
+        $items = [['style_number' => $order['style_number'], 'color' => '', 'size' => '', 'quantity' => $order['total_quantity']]];
+    }
 } catch (mysqli_sql_exception $e) {
     error_log('Database exception loading buyer order details: ' . $e->getMessage());
     flash_set('error', 'A database error occurred while loading the order.');
@@ -38,4 +46,5 @@ include __DIR__ . '/../../includes/sidebar.php';
     <div><span class="form-label">Created</span><p><?= e($order['created_at']) ?></p></div>
     <div><span class="form-label">Last Updated</span><p><?= e($order['updated_at']) ?></p></div>
 </div></div></div>
+<div class="card"><div class="card-header"><h2>Order Items</h2><span class="badge badge-muted">Total: <?= number_format((int) $order['total_quantity']) ?> pcs</span></div><div class="card-body"><div class="table-responsive"><table class="table" style="width:100%; min-width:620px;"><thead><tr><th scope="col" style="width:40%;">Style</th><th scope="col" style="width:25%;">Color</th><th scope="col" style="width:20%;">Size</th><th scope="col" style="width:15%; text-align:right;">Quantity</th></tr></thead><tbody><?php foreach ($items as $item): ?><tr><td><?= e($item['style_number']) ?></td><td><?= e($item['color'] ?: 'Not specified') ?></td><td><?= e($item['size'] ?: 'Not specified') ?></td><td style="text-align:right;"> <?= number_format((int) $item['quantity']) ?></td></tr><?php endforeach; ?></tbody></table></div></div></div>
 <?php include __DIR__ . '/../../includes/footer.php'; ?>
