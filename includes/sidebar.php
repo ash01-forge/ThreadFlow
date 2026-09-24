@@ -147,6 +147,26 @@ $userRole = $currentUser['role'] ?? '';
 
             <?php endif; ?>
 
+            <?php if (in_array($userRole, ['admin', 'merchandiser', 'management'], true)): ?>
+
+                <li>
+                    <a
+                        href="<?= e(url('modules/buyer_risk_analyzer/index.php')) ?>"
+                        class="nav-link <?= $currentNav === 'buyer_risk_analyzer' ? 'active' : '' ?>"
+                    >
+                        <span class="nav-link-main">
+                            <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 3v18M3 12h18"></path>
+                                <path d="M5 7h14M5 17h14"></path>
+                            </svg>
+                            <span>Buyer Risk Analyzer</span>
+                        </span>
+                        <span class="nav-badge badge-muted">M1</span>
+                    </a>
+                </li>
+
+            <?php endif; ?>
+
             <!-- Member 2 and Member 3 Modules -->
             <?php if (in_array($userRole, ['admin', 'production_manager'], true)): ?>
 
