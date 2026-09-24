@@ -16,8 +16,7 @@ if (!$orderId || $orderId <= 0) {
 
 $orderNumber = trim($_POST['order_number'] ?? '');
 $buyerId = filter_var($_POST['buyer_id'] ?? null, FILTER_VALIDATE_INT);
-$styleNumber = trim($_POST['style_number'] ?? '');
-$quantityInput = trim((string) ($_POST['total_quantity'] ?? ''));
+$itemsInput = isset($_POST['items']) && is_array($_POST['items']) ? $_POST['items'] : [];
 $orderDate = trim($_POST['order_date'] ?? '');
 $deliveryDate = trim($_POST['delivery_date'] ?? '');
 $status = trim($_POST['status'] ?? '');
@@ -48,14 +47,22 @@ if ($orderNumber === '') {
 if (!$buyerId || $buyerId <= 0) {
     $errors['buyer_id'] = 'Please select an active buyer.';
 }
-if ($styleNumber === '') {
-    $errors['style_number'] = 'Style Number is required.';
-} elseif (mb_strlen($styleNumber) > 50) {
-    $errors['style_number'] = 'Style Number cannot exceed 50 characters.';
+$items = [];
+$totalQuantity = 0;
+foreach ($itemsInput as $itemInput) {
+    $item = is_array($itemInput) ? $itemInput : [];
+    $style = trim((string) ($item['style_number'] ?? ''));
+    $color = trim((string) ($item['color'] ?? ''));
+    $size = trim((string) ($item['size'] ?? ''));
+    $quantityInput = trim((string) ($item['quantity'] ?? ''));
+    if ($style === '' || mb_strlen($style) > 50) { $errors['items'] = 'Every item needs a style number of 50 characters or fewer.'; }
+    if (mb_strlen($color) > 100 || mb_strlen($size) > 50) { $errors['items'] = 'Color or size is too long.'; }
+    if ($quantityInput === '' || filter_var($quantityInput, FILTER_VALIDATE_INT) === false || (int) $quantityInput <= 0) { $errors['items'] = 'Every item quantity must be a positive integer.'; }
+    $quantity = (int) $quantityInput;
+    $totalQuantity += $quantity;
+    $items[] = ['style_number' => $style, 'color' => $color, 'size' => $size, 'quantity' => $quantity];
 }
-if ($quantityInput === '' || filter_var($quantityInput, FILTER_VALIDATE_INT) === false || (int) $quantityInput <= 0) {
-    $errors['total_quantity'] = 'Quantity must be greater than zero.';
-}
+if (!$items) { $errors['items'] = 'At least one order item is required.'; }
 $validDate = static function (string $value): bool {
     $date = DateTime::createFromFormat('!Y-m-d', $value);
     return $date !== false && $date->format('Y-m-d') === $value;
@@ -105,17 +112,27 @@ if ($errors) {
     redirect('modules/orders/edit.php?id=' . (int) $orderId);
 }
 
-$quantity = (int) $quantityInput;
+$styleNumber = $items[0]['style_number'];
 $orderDateParam = $orderDate !== '' ? $orderDate : null;
 $deliveryDateParam = $deliveryDate !== '' ? $deliveryDate : null;
 try {
+    $conn->begin_transaction();
     $stmt = $conn->prepare('UPDATE buyer_orders SET buyer_id = ?, order_number = ?, style_number = ?, total_quantity = ?, order_date = ?, delivery_date = ?, status = ? WHERE order_id = ?');
-    $stmt->bind_param('ississsi', $buyerId, $orderNumber, $styleNumber, $quantity, $orderDateParam, $deliveryDateParam, $status, $orderId);
+    $stmt->bind_param('ississsi', $buyerId, $orderNumber, $styleNumber, $totalQuantity, $orderDateParam, $deliveryDateParam, $status, $orderId);
     $stmt->execute();
     $stmt->close();
+    $deleteStmt = $conn->prepare('DELETE FROM order_items WHERE order_id = ?');
+    $deleteStmt->bind_param('i', $orderId);
+    $deleteStmt->execute();
+    $deleteStmt->close();
+    $itemStmt = $conn->prepare('INSERT INTO order_items (order_id, style_number, color, size, quantity) VALUES (?, ?, ?, ?, ?)');
+    foreach ($items as $item) { $itemStmt->bind_param('isssi', $orderId, $item['style_number'], $item['color'], $item['size'], $item['quantity']); $itemStmt->execute(); }
+    $itemStmt->close();
+    $conn->commit();
     flash_set('success', "Order '{$orderNumber}' updated successfully.");
     redirect('modules/orders/view.php?id=' . (int) $orderId);
 } catch (mysqli_sql_exception $e) {
+    $conn->rollback();
     error_log('Database exception updating buyer order: ' . $e->getMessage());
     $_SESSION['_form_old'] = $_POST;
     flash_set('error', $e->getCode() === 1062 ? 'Order Number already exists.' : 'A database error occurred while updating the order.');
