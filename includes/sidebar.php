@@ -322,6 +322,41 @@ $userRole = $currentUser['role'] ?? '';
 
             <?php endif; ?>
 
+            <!-- Member 3 Feature 4: Operational Dashboard (Admin, Production Manager, Management) -->
+            <?php if (in_array($userRole, ['admin', 'production_manager', 'management'], true)): ?>
+
+                <li>
+                    <a
+                        href="<?= e(url('modules/operational_dashboard/index.php')) ?>"
+                        class="nav-link <?= $currentNav === 'operational_dashboard' ? 'active' : '' ?>"
+                    >
+                        <span class="nav-link-main">
+                            <svg
+                                class="nav-icon"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="3" y1="9" x2="21" y2="9"></line>
+                                <line x1="9" y1="21" x2="9" y2="9"></line>
+                            </svg>
+
+                            <span>Operational Dashboard</span>
+                        </span>
+
+                        <span class="nav-badge badge-muted">M3</span>
+                    </a>
+                </li>
+
+            <?php endif; ?>
+
             <!-- Member 4 Modules -->
             <?php if (in_array($userRole, ['admin', 'qc_officer'], true)): ?>
 
