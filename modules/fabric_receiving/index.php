@@ -128,6 +128,8 @@ include __DIR__ . '/../../includes/sidebar.php';
     <div class="page-actions">
         <a href="<?= e(url('modules/fabric_receiving/create.php')) ?>" class="btn btn-primary">Receive Fabric Lot</a>
         <a href="<?= e(url('modules/suppliers/index.php')) ?>" class="btn btn-secondary">Supplier Directory</a>
+        <a href="<?= e(url('modules/fabric_inspections/index.php')) ?>" class="btn btn-secondary">Fabric Inspections</a>
+        <a href="<?= e(url('modules/fabric_allocations/index.php')) ?>" class="btn btn-secondary">Allocation &amp; Traceability</a>
     </div>
 </div>
 
@@ -269,6 +271,7 @@ include __DIR__ . '/../../includes/sidebar.php';
                                     <div class="row-actions">
                                         <a href="<?= e(url('modules/fabric_receiving/view.php?id=' . (int) $lot['fabric_lot_id'])) ?>" class="btn btn-sm btn-secondary">View</a>
                                         <a href="<?= e(url('modules/fabric_receiving/edit.php?id=' . (int) $lot['fabric_lot_id'])) ?>" class="btn btn-sm btn-secondary">Edit</a>
+                                        <a href="<?= e(url('modules/fabric_inspections/create.php?lot_id=' . (int) $lot['fabric_lot_id'])) ?>" class="btn btn-sm btn-secondary">Inspect</a>
                                     </div>
                                 </td>
                             </tr>
@@ -281,4 +284,5 @@ include __DIR__ . '/../../includes/sidebar.php';
 </div>
 
 <?php
+echo '<link rel="stylesheet" href="modern-ui.css">';
 include __DIR__ . '/../../includes/footer.php';
