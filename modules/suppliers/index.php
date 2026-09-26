@@ -84,7 +84,7 @@ include __DIR__ . '/../../includes/sidebar.php';
         <div class="page-subtitle">Module 2 &bull; Ownership: Member 2 &bull; Access: Admin, Production Manager</div>
     </div>
     <div class="page-actions">
-        <a href="<?= e(url('modules/suppliers/create.php')) ?>" class="btn btn-primary">Add New Supplier</a>
+        <a href="<?= e(url('modules/suppliers/create.php')) ?>" class="btn btn-primary">Add New Supplier</a>        <a href="<?= e(url('modules/fabric_receiving/index.php')) ?>" class="btn btn-secondary">Fabric Receiving</a>        <a href="<?= e(url('modules/fabric_inspections/index.php')) ?>" class="btn btn-secondary">Fabric Inspections</a>        <a href="<?= e(url('modules/fabric_allocations/index.php')) ?>" class="btn btn-secondary">Allocation &amp; Traceability</a>
     </div>
 </div>
 
@@ -237,5 +237,6 @@ include __DIR__ . '/../../includes/sidebar.php';
 </div>
 
 <?php
+echo '<link rel="stylesheet" href="modern-ui.css">';
 include __DIR__ . '/../../includes/footer.php';
 ?>

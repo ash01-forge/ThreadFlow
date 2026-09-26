@@ -1,0 +1,32 @@
+/* Member 2 - Fabric Inspection. Module-scoped visual layer. */
+@import url("../suppliers/modern-ui.css");
+
+.page-title-group h1::after {
+    content: "Inspection";
+    display: inline-flex;
+    margin-left: .55rem;
+    padding: .22rem .52rem;
+    vertical-align: middle;
+    border: 1px solid #d9afb6;
+    border-radius: 999px;
+    background: #fff;
+    color: #76575c;
+    font-size: .65rem;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.details-table { width: 100%; border-collapse: collapse; }
+.details-table th,
+.details-table td { padding: .9rem 1rem; border-bottom: 1px solid var(--m2-border); text-align: left; vertical-align: top; }
+.details-table th { width: 34%; color: var(--m2-maroon-dark); background: #fff7f8; font-size: .76rem; letter-spacing: .035em; text-transform: uppercase; }
+.details-table tr:last-child th,
+.details-table tr:last-child td { border-bottom: 0; }
+
+@media (max-width: 680px) {
+    .page-title-group h1::after { display: none; }
+    .details-table, .details-table tbody, .details-table tr, .details-table th, .details-table td { display: block; width: 100%; }
+    .details-table tr { margin-bottom: .7rem; border: 1px solid var(--m2-border); border-radius: 10px; overflow: hidden; }
+    .details-table th, .details-table td { border: 0; }
+}

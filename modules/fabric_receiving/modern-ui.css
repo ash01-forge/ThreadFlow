@@ -1,0 +1,32 @@
+/* Member 2 - Fabric Receiving Management. Loaded only by this module's UI pages. */
+@import url("../suppliers/modern-ui.css");
+
+/* Receiving-specific operational presentation. */
+.page-title-group h1::after {
+    content: "Receiving";
+    display: inline-flex;
+    margin-left: 0.55rem;
+    padding: 0.22rem 0.52rem;
+    vertical-align: middle;
+    border: 1px solid #d9afb6;
+    border-radius: 999px;
+    background: #fff;
+    color: #76575c;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.card-medium .badge-warning,
+.card .badge-warning {
+    box-shadow: inset 0 0 0 1px rgba(161, 92, 0, 0.06);
+}
+
+.card-medium .card-header {
+    background: linear-gradient(180deg, #fff8f9, #f9e9ec);
+}
+
+@media (max-width: 520px) {
+    .page-title-group h1::after { display: none; }
+}
