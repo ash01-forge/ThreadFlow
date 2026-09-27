@@ -97,20 +97,9 @@ try {
             $batchOptions = $btRes->fetch_all(MYSQLI_ASSOC);
         }
 
-        // KPI metrics
-        $kpiSql = "SELECT 
-            COUNT(*) AS total_shipments,
-            COALESCE(SUM(CASE WHEN status != 'Cancelled' THEN packed_quantity ELSE 0 END), 0) AS total_packed_qty,
-            COALESCE(SUM(CASE WHEN status IN ('In Transit', 'Shipped') THEN 1 ELSE 0 END), 0) AS active_shipments,
-            COALESCE(SUM(CASE WHEN status != 'Cancelled' THEN carton_count ELSE 0 END), 0) AS total_cartons
-        FROM packing_shipments";
-        $kpiRes = $conn->query($kpiSql);
-        if ($kpiRes) {
-            $metrics = $kpiRes->fetch_assoc() ?: $metrics;
-        }
     }
 } catch (mysqli_sql_exception $e) {
-    error_log("Failed to load packing & shipment filter data or metrics: " . $e->getMessage());
+    error_log("Failed to load packing & shipment filter data: " . $e->getMessage());
     $tableMissing = true;
 }
 
@@ -202,18 +191,85 @@ if (!$tableMissing) {
     }
 }
 
+// KPI values are derived from the rows already loaded for this view.
+$metrics['total_shipments'] = count($records);
+foreach ($records as $recordRow) {
+    if ($recordRow['status'] !== 'Cancelled') {
+        $metrics['total_packed_qty'] += (int) $recordRow['packed_quantity'];
+        $metrics['total_cartons'] += (int) $recordRow['carton_count'];
+    }
+
+    if (in_array($recordRow['status'], ['In Transit', 'Shipped'], true)) {
+        $metrics['active_shipments']++;
+    }
+}
+
 include __DIR__ . '/../../includes/header.php';
 include __DIR__ . '/../../includes/sidebar.php';
 ?>
 
+<style>
+.ps-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.ps-kpi-card {
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.ps-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+.ps-kpi-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+}
+.ps-kpi-num {
+    font-size: 1.85rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin: 0.35rem 0;
+}
+.ps-kpi-sub {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+.method-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: #F3F4F6;
+    color: #374151;
+    border: 1px solid #E5E7EB;
+}
+.method-badge.sea { background: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE; }
+.method-badge.air { background: #FAF5FF; color: #7E22CE; border-color: #E9D5FF; }
+.method-badge.road { background: #FEFCE8; color: #854D0E; border-color: #FEF08A; }
+.method-badge.courier { background: #FFF7ED; color: #C2410C; border-color: #FFEDD5; }
+</style>
+
 <div class="page-header">
     <div class="page-title-group">
         <h1>Packing &amp; Shipment Management</h1>
-        <div class="page-subtitle">Module 4 &bull; Finished Goods Packaging, Dispatch &amp; Logistics Tracking</div>
+        <div class="page-subtitle">Finished Goods Packaging, Dispatch &amp; Logistics Tracking</div>
     </div>
     <div class="page-actions">
         <a href="<?= e(url('modules/packing_shipment/create.php')) ?>" class="btn btn-primary">
-            Create Packing Shipment
+            + Create Packing Shipment
         </a>
     </div>
 </div>
@@ -225,38 +281,38 @@ include __DIR__ . '/../../includes/sidebar.php';
     </div>
 <?php endif; ?>
 
-<!-- Summary KPI Metric Cards matching ThreadFlow Standard Layout -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-    <div class="card" style="margin-bottom: 0; padding: 1.25rem;">
-        <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: var(--color-text-muted); letter-spacing: 0.5px;">Total Shipments Logged</div>
-        <div style="font-size: 1.75rem; font-weight: 700; color: var(--color-primary); margin-top: 0.25rem;">
+<!-- Summary KPI Metric Cards -->
+<div class="ps-kpi-grid">
+    <div class="ps-kpi-card">
+        <div class="ps-kpi-label">Total Shipments Logged</div>
+        <div class="ps-kpi-num" style="color:var(--color-primary);">
             <?= e(number_format((int)$metrics['total_shipments'])) ?>
         </div>
-        <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.25rem;">Total packages created</div>
+        <div class="ps-kpi-sub">Total packages created</div>
     </div>
 
-    <div class="card" style="margin-bottom: 0; padding: 1.25rem;">
-        <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: var(--color-text-muted); letter-spacing: 0.5px;">Active Packed Units</div>
-        <div style="font-size: 1.75rem; font-weight: 700; color: #15803D; margin-top: 0.25rem;">
+    <div class="ps-kpi-card">
+        <div class="ps-kpi-label">Active Packed Units</div>
+        <div class="ps-kpi-num" style="color:#166534;">
             <?= e(number_format((int)$metrics['total_packed_qty'])) ?>
         </div>
-        <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.25rem;">pcs finished goods</div>
+        <div class="ps-kpi-sub">pcs finished goods prepared</div>
     </div>
 
-    <div class="card" style="margin-bottom: 0; padding: 1.25rem;">
-        <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: var(--color-text-muted); letter-spacing: 0.5px;">In Transit / Shipped</div>
-        <div style="font-size: 1.75rem; font-weight: 700; color: #1E40AF; margin-top: 0.25rem;">
+    <div class="ps-kpi-card">
+        <div class="ps-kpi-label">In Transit / Shipped</div>
+        <div class="ps-kpi-num" style="color:#1E40AF;">
             <?= e(number_format((int)$metrics['active_shipments'])) ?>
         </div>
-        <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.25rem;">Active outbound shipments</div>
+        <div class="ps-kpi-sub">Active outbound shipments</div>
     </div>
 
-    <div class="card" style="margin-bottom: 0; padding: 1.25rem;">
-        <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: var(--color-text-muted); letter-spacing: 0.5px;">Total Outbound Cartons</div>
-        <div style="font-size: 1.75rem; font-weight: 700; color: #854D0E; margin-top: 0.25rem;">
+    <div class="ps-kpi-card">
+        <div class="ps-kpi-label">Total Outbound Cartons</div>
+        <div class="ps-kpi-num" style="color:#854D0E;">
             <?= e(number_format((int)$metrics['total_cartons'])) ?>
         </div>
-        <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.25rem;">Cartons / boxes prepared</div>
+        <div class="ps-kpi-sub">Cartons / boxes containerized</div>
     </div>
 </div>
 
@@ -414,7 +470,16 @@ include __DIR__ . '/../../includes/sidebar.php';
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <div><span class="badge badge-muted"><?= e($row['shipping_method']) ?></span></div>
+                                    <?php
+                                    $methodClass = strtolower($row['shipping_method']);
+                                    $methodIcon = [
+                                        'sea' => '🚢 Sea',
+                                        'air' => '✈ Air',
+                                        'road' => '🚚 Road',
+                                        'courier' => '📦 Courier',
+                                    ][$methodClass] ?? $row['shipping_method'];
+                                    ?>
+                                    <div><span class="method-badge <?= e($methodClass) ?>"><?= e($methodIcon) ?></span></div>
                                     <div class="text-muted" style="font-size: 0.75rem; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= e($row['destination']) ?>">
                                         <?= e($row['destination']) ?>
                                     </div>

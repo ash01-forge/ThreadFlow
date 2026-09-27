@@ -135,6 +135,116 @@ include __DIR__ . '/../../includes/sidebar.php';
     </div>
 </div>
 
+<!-- Scoped Inspection List Styles -->
+<style>
+.qi-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.qi-kpi-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1.15rem 1.25rem;
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.qi-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+.qi-kpi-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--color-text-muted);
+}
+.qi-kpi-val {
+    font-size: 1.85rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin: 0.35rem 0 0.2rem;
+}
+.qi-kpi-sub {
+    font-size: 0.78rem;
+    color: var(--color-text-subtle);
+}
+.qi-rate-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+.qi-stage-badge {
+    background: #EFF6FF;
+    color: #1E40AF;
+    border: 1px solid #BFDBFE;
+    font-size: 0.72rem;
+    padding: 0.18rem 0.5rem;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+}
+</style>
+
+<?php
+// Calculate in-memory statistics from loaded inspection dataset
+$totalInsp = count($inspections);
+$sumInspected = 0;
+$sumPassed = 0;
+$sumDefective = 0;
+$sumDefectOccurrences = 0;
+$passedCount = 0;
+$failedCount = 0;
+
+foreach ($inspections as $insRow) {
+    $sumInspected += (int)$insRow['inspected_quantity'];
+    $sumPassed += (int)$insRow['passed_quantity'];
+    $sumDefective += (int)$insRow['defective_quantity'];
+    $sumDefectOccurrences += (int)$insRow['total_defect_occurrences'];
+    if ($insRow['overall_result'] === 'Passed') {
+        $passedCount++;
+    } elseif ($insRow['overall_result'] === 'Failed') {
+        $failedCount++;
+    }
+}
+$overallPassRate = $sumInspected > 0 ? round(($sumPassed / $sumInspected) * 100, 1) : 0;
+?>
+
+<!-- KPI Metric Cards (Computed from loaded result set) -->
+<div class="qi-kpi-grid">
+    <div class="qi-kpi-card">
+        <div class="qi-kpi-label">Audits Recorded</div>
+        <div class="qi-kpi-val" style="color: var(--color-primary);"><?= number_format($totalInsp) ?></div>
+        <div class="qi-kpi-sub"><?= $passedCount ?> passed &bull; <?= $failedCount ?> failed</div>
+    </div>
+    <div class="qi-kpi-card">
+        <div class="qi-kpi-label">Total Inspected</div>
+        <div class="qi-kpi-val" style="color: var(--color-text);"><?= number_format($sumInspected) ?></div>
+        <div class="qi-kpi-sub">Garments sampled on floor</div>
+    </div>
+    <div class="qi-kpi-card">
+        <div class="qi-kpi-label">Overall Pass Rate</div>
+        <div class="qi-kpi-val" style="color: <?= $overallPassRate >= 95 ? 'var(--color-success)' : ($overallPassRate >= 85 ? 'var(--color-warning)' : 'var(--color-danger)') ?>;">
+            <?= $overallPassRate ?>%
+        </div>
+        <div class="qi-kpi-sub"><?= number_format($sumPassed) ?> pieces cleared</div>
+    </div>
+    <div class="qi-kpi-card">
+        <div class="qi-kpi-label">Defect Occurrences</div>
+        <div class="qi-kpi-val" style="color: <?= $sumDefective > 0 ? 'var(--color-danger)' : 'var(--color-text-muted)' ?>;">
+            <?= number_format($sumDefectOccurrences) ?>
+        </div>
+        <div class="qi-kpi-sub"><?= number_format($sumDefective) ?> defective garments</div>
+    </div>
+</div>
+
 <!-- Search & Filter Controls -->
 <div class="card mb-4">
     <div class="card-body">

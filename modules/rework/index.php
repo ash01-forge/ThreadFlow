@@ -20,36 +20,6 @@ $search       = trim($_GET['q'] ?? '');
 $statusFilter = trim($_GET['status'] ?? 'all');
 $batchFilter  = filter_input(INPUT_GET, 'batch_id', FILTER_VALIDATE_INT);
 
-// Summary metrics across all rework records
-$stats = [
-    'total'       => 0,
-    'pending'     => 0,
-    'in_progress' => 0,
-    'completed'   => 0,
-    'rejected'    => 0,
-    'rework_qty'  => 0,
-    'salvaged'    => 0,
-    'scrapped'    => 0,
-];
-
-try {
-    $statRes = $conn->query("SELECT 
-        COUNT(*) AS total,
-        COALESCE(SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END), 0) AS pending,
-        COALESCE(SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END), 0) AS in_progress,
-        COALESCE(SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END), 0) AS completed,
-        COALESCE(SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END), 0) AS rejected,
-        COALESCE(SUM(rework_quantity), 0) AS rework_qty,
-        COALESCE(SUM(completed_quantity), 0) AS salvaged,
-        COALESCE(SUM(rejected_quantity), 0) AS scrapped
-    FROM rework_jobs");
-    if ($statRes) {
-        $stats = $statRes->fetch_assoc();
-    }
-} catch (mysqli_sql_exception $e) {
-    error_log("Failed to load rework summary metrics: " . $e->getMessage());
-}
-
 // Fetch active production batches for filter dropdown
 $batchOptions = [];
 try {
@@ -150,6 +120,34 @@ try {
     flash_set('error', 'A database error occurred while loading rework records.');
 }
 
+// Summary metrics calculated from the records already loaded for this view.
+$stats = [
+    'total'       => count($reworks),
+    'pending'     => 0,
+    'in_progress' => 0,
+    'completed'   => 0,
+    'rejected'    => 0,
+    'rework_qty'  => 0,
+    'salvaged'    => 0,
+    'scrapped'    => 0,
+];
+
+foreach ($reworks as $reworkRow) {
+    $stats['rework_qty'] += (int) $reworkRow['rework_quantity'];
+    $stats['salvaged'] += (int) $reworkRow['completed_quantity'];
+    $stats['scrapped'] += (int) $reworkRow['rejected_quantity'];
+
+    if ($reworkRow['status'] === 'Pending') {
+        $stats['pending']++;
+    } elseif ($reworkRow['status'] === 'In Progress') {
+        $stats['in_progress']++;
+    } elseif ($reworkRow['status'] === 'Completed') {
+        $stats['completed']++;
+    } elseif ($reworkRow['status'] === 'Rejected') {
+        $stats['rejected']++;
+    }
+}
+
 $hasActiveFilters = ($search !== '' || $statusFilter !== 'all' || ($batchFilter && $batchFilter > 0));
 
 include __DIR__ . '/../../includes/header.php';
@@ -166,46 +164,78 @@ include __DIR__ . '/../../includes/sidebar.php';
     </div>
 </div>
 
+<!-- Scoped Rework List Styles -->
+<style>
+.rwk-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.rwk-kpi-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1.15rem 1.25rem;
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.rwk-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+.rwk-kpi-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--color-text-muted);
+}
+.rwk-kpi-val {
+    font-size: 1.85rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin: 0.35rem 0 0.2rem;
+}
+.rwk-kpi-sub {
+    font-size: 0.78rem;
+    color: var(--color-text-subtle);
+}
+</style>
+
 <!-- Summary Metric Cards -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-    <div class="card" style="margin-bottom: 0; padding: 1.25rem;">
-        <div class="text-xs text-muted" style="text-transform: uppercase; font-weight: 600;">Total Rework Jobs</div>
-        <div style="font-size: 1.75rem; font-weight: 700; color: var(--color-primary); margin-top: 0.25rem;">
-            <?= number_format((int)$stats['total']) ?>
-        </div>
-        <div class="text-xs text-muted"><?= number_format((int)$stats['rework_qty']) ?> pcs total allocated</div>
+<div class="rwk-kpi-grid">
+    <div class="rwk-kpi-card">
+        <div class="rwk-kpi-label">Total Rework Jobs</div>
+        <div class="rwk-kpi-val" style="color: var(--color-primary);"><?= number_format((int)$stats['total']) ?></div>
+        <div class="rwk-kpi-sub"><?= number_format((int)$stats['rework_qty']) ?> pcs allocated</div>
     </div>
 
-    <div class="card" style="margin-bottom: 0; padding: 1.25rem;">
-        <div class="text-xs text-muted" style="text-transform: uppercase; font-weight: 600;">Pending</div>
-        <div style="font-size: 1.75rem; font-weight: 700; color: #b7791f; margin-top: 0.25rem;">
-            <?= number_format((int)$stats['pending']) ?>
-        </div>
-        <div class="text-xs text-muted">Awaiting assignment/start</div>
+    <div class="rwk-kpi-card">
+        <div class="rwk-kpi-label">Pending Assignment</div>
+        <div class="rwk-kpi-val" style="color: #B45309;"><?= number_format((int)$stats['pending']) ?></div>
+        <div class="rwk-kpi-sub">Awaiting floor start</div>
     </div>
 
-    <div class="card" style="margin-bottom: 0; padding: 1.25rem;">
-        <div class="text-xs text-muted" style="text-transform: uppercase; font-weight: 600;">In Progress</div>
-        <div style="font-size: 1.75rem; font-weight: 700; color: #2b6cb0; margin-top: 0.25rem;">
-            <?= number_format((int)$stats['in_progress']) ?>
-        </div>
-        <div class="text-xs text-muted">Currently in repair</div>
+    <div class="rwk-kpi-card">
+        <div class="rwk-kpi-label">In Active Repair</div>
+        <div class="rwk-kpi-val" style="color: #1D4ED8;"><?= number_format((int)$stats['in_progress']) ?></div>
+        <div class="rwk-kpi-sub">On sewing repair lines</div>
     </div>
 
-    <div class="card" style="margin-bottom: 0; padding: 1.25rem;">
-        <div class="text-xs text-muted" style="text-transform: uppercase; font-weight: 600;">Completed</div>
-        <div style="font-size: 1.75rem; font-weight: 700; color: #2e7d32; margin-top: 0.25rem;">
-            <?= number_format((int)$stats['completed']) ?>
-        </div>
-        <div class="text-xs text-muted"><?= number_format((int)$stats['salvaged']) ?> pcs salvaged</div>
+    <div class="rwk-kpi-card">
+        <div class="rwk-kpi-label">Salvaged Units</div>
+        <div class="rwk-kpi-val" style="color: #15803D;"><?= number_format((int)$stats['salvaged']) ?></div>
+        <div class="rwk-kpi-sub"><?= number_format((int)$stats['completed']) ?> jobs completed</div>
     </div>
 
-    <div class="card" style="margin-bottom: 0; padding: 1.25rem;">
-        <div class="text-xs text-muted" style="text-transform: uppercase; font-weight: 600;">Rejected / Scrapped</div>
-        <div style="font-size: 1.75rem; font-weight: 700; color: #c62828; margin-top: 0.25rem;">
-            <?= number_format((int)$stats['rejected']) ?>
-        </div>
-        <div class="text-xs text-muted"><?= number_format((int)$stats['scrapped']) ?> pcs scrapped</div>
+    <div class="rwk-kpi-card">
+        <div class="rwk-kpi-label">Scrapped Pieces</div>
+        <div class="rwk-kpi-val" style="color: #B91C1C;"><?= number_format((int)$stats['scrapped']) ?></div>
+        <div class="rwk-kpi-sub"><?= number_format((int)$stats['rejected']) ?> jobs unrecoverable</div>
     </div>
 </div>
 

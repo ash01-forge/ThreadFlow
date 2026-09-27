@@ -83,14 +83,70 @@ include __DIR__ . '/../../includes/sidebar.php';
     </div>
 </div>
 
-<div class="card card-form" style="max-width: 900px;">
+<!-- Scoped Create Inspection Styles -->
+<style>
+.qi-form-card {
+    max-width: 920px;
+    margin: 0 auto 1.5rem;
+}
+.form-section-header {
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding: 0.85rem 1.25rem;
+    background: var(--color-surface-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.form-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-primary-dark);
+    margin: 0;
+}
+.form-section-body {
+    padding: 1.25rem;
+}
+.qi-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.15rem;
+}
+.qi-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+.qi-calc-box {
+    background: #FFFDFD;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+}
+.qi-calc-box-header {
+    background: var(--color-primary-subtle);
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.qi-calc-box-body {
+    padding: 1.15rem;
+}
+</style>
+
+<div class="card qi-form-card">
     <div class="card-header">
-        <h2>Inspection Audit Entry</h2>
+        <div>
+            <h2>Inspection Audit Entry</h2>
+            <div class="text-xs text-muted">Log floor quality sampling results and defect taxonomy breakdowns</div>
+        </div>
         <span class="badge badge-primary">New Inspection</span>
     </div>
-    <div class="card-body">
+    <div class="card-body p-0">
         <?php if (empty($batches)): ?>
-            <div class="alert alert-warning mb-4">
+            <div class="alert alert-warning m-3 mb-0">
                 <strong>Prerequisite Missing:</strong> No production batches found in the database.
                 An inspection must reference a valid production batch. Please create a batch in Module 3 first.
             </div>
@@ -99,36 +155,48 @@ include __DIR__ . '/../../includes/sidebar.php';
         <form action="<?= e(url('modules/quality_inspections/store.php')) ?>" method="post" id="inspectionForm" novalidate>
             <?= csrf_field() ?>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group">
-                    <label for="inspection_number" class="form-label">Inspection Number <span class="required">*</span></label>
-                    <input type="text"
-                           id="inspection_number"
-                           name="inspection_number"
-                           class="form-control <?= isset($errors['inspection_number']) ? 'has-error' : '' ?>"
-                           maxlength="50"
-                           required
-                           value="<?= e($defaultInspectionNumber) ?>"
-                           placeholder="e.g., INS-20260917-001">
-                    <?php if (isset($errors['inspection_number'])): ?>
-                        <span class="form-error"><?= e($errors['inspection_number']) ?></span>
-                    <?php endif; ?>
-                    <span class="form-text">Unique alphanumeric inspection audit identifier.</span>
-                </div>
+            <!-- Section 1: Audit Header & Session Context -->
+            <div class="form-section-header">
+                <h3 class="form-section-title">1. Audit Identification &amp; Inspector</h3>
+                <span class="badge badge-muted text-xs">Session Log</span>
+            </div>
+            <div class="form-section-body">
+                <div class="qi-grid-2">
+                    <div class="form-group mb-0">
+                        <label for="inspection_number" class="form-label">Inspection Number <span class="required">*</span></label>
+                        <input type="text"
+                               id="inspection_number"
+                               name="inspection_number"
+                               class="form-control <?= isset($errors['inspection_number']) ? 'has-error' : '' ?>"
+                               maxlength="50"
+                               required
+                               value="<?= e($defaultInspectionNumber) ?>"
+                               placeholder="e.g., INS-20260917-001">
+                        <?php if (isset($errors['inspection_number'])): ?>
+                            <span class="form-error"><?= e($errors['inspection_number']) ?></span>
+                        <?php endif; ?>
+                        <span class="form-text">Unique alphanumeric inspection audit identifier.</span>
+                    </div>
 
-                <div class="form-group">
-                    <label class="form-label">Inspector <span class="text-muted">(Authenticated Session)</span></label>
-                    <input type="text"
-                           class="form-control"
-                           value="<?= e($currentUser['full_name'] ?: $currentUser['username']) ?> (<?= e(ucwords(str_replace('_', ' ', $currentUser['role']))) ?>)"
-                           readonly
-                           disabled
-                           style="background-color: var(--color-bg, #FCEBED); cursor: not-allowed;">
-                    <span class="form-text">Locked to your active authenticated account for audit traceability.</span>
+                    <div class="form-group mb-0">
+                        <label class="form-label">Inspector <span class="text-muted">(Session Account)</span></label>
+                        <input type="text"
+                               class="form-control"
+                               value="<?= e($currentUser['full_name'] ?: $currentUser['username']) ?> (<?= e(ucwords(str_replace('_', ' ', $currentUser['role']))) ?>)"
+                               readonly
+                               disabled
+                               style="background-color: var(--color-bg, #FCEBED); cursor: not-allowed;">
+                        <span class="form-text">Locked to your active authenticated account for audit traceability.</span>
+                    </div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+            <!-- Section 2: Production Batch & Stage Context -->
+            <div class="form-section-header">
+                <h3 class="form-section-title">2. Batch Routing &amp; Stage Evaluation</h3>
+                <span class="badge badge-muted text-xs">Floor Context</span>
+            </div>
+            <div class="form-section-body">
                 <div class="form-group">
                     <label for="batch_id" class="form-label">Production Batch <span class="required">*</span></label>
                     <select id="batch_id"
@@ -153,71 +221,77 @@ include __DIR__ . '/../../includes/sidebar.php';
                     <span class="form-text">Target production lot being inspected.</span>
                 </div>
 
-                <div class="form-group">
-                    <label for="inspection_stage" class="form-label">Inspection Stage <span class="required">*</span></label>
-                    <select id="inspection_stage"
-                            name="inspection_stage"
-                            class="form-control <?= isset($errors['inspection_stage']) ? 'has-error' : '' ?>"
-                            required>
-                        <?php foreach ($stages as $stg): ?>
-                            <?php $selected = ($old['inspection_stage'] ?? 'Inline') === $stg ? 'selected' : ''; ?>
-                            <option value="<?= e($stg) ?>" <?= $selected ?>><?= e($stg) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <?php if (isset($errors['inspection_stage'])): ?>
-                        <span class="form-error"><?= e($errors['inspection_stage']) ?></span>
-                    <?php endif; ?>
+                <div class="qi-grid-3">
+                    <div class="form-group mb-0">
+                        <label for="inspection_stage" class="form-label">Inspection Stage <span class="required">*</span></label>
+                        <select id="inspection_stage"
+                                name="inspection_stage"
+                                class="form-control <?= isset($errors['inspection_stage']) ? 'has-error' : '' ?>"
+                                required>
+                            <?php foreach ($stages as $stg): ?>
+                                <?php $selected = ($old['inspection_stage'] ?? 'Inline') === $stg ? 'selected' : ''; ?>
+                                <option value="<?= e($stg) ?>" <?= $selected ?>><?= e($stg) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <?php if (isset($errors['inspection_stage'])): ?>
+                            <span class="form-error"><?= e($errors['inspection_stage']) ?></span>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="form-group mb-0">
+                        <label for="inspection_date" class="form-label">Inspection Date <span class="required">*</span></label>
+                        <input type="date"
+                               id="inspection_date"
+                               name="inspection_date"
+                               class="form-control <?= isset($errors['inspection_date']) ? 'has-error' : '' ?>"
+                               required
+                               value="<?= e($old['inspection_date'] ?? date('Y-m-d')) ?>">
+                        <?php if (isset($errors['inspection_date'])): ?>
+                            <span class="form-error"><?= e($errors['inspection_date']) ?></span>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="form-group mb-0">
+                        <label for="overall_result" class="form-label">Overall Result <span class="required">*</span></label>
+                        <select id="overall_result"
+                                name="overall_result"
+                                class="form-control <?= isset($errors['overall_result']) ? 'has-error' : '' ?>"
+                                required>
+                            <?php foreach ($results as $res): ?>
+                                <?php $selected = ($old['overall_result'] ?? 'Passed') === $res ? 'selected' : ''; ?>
+                                <option value="<?= e($res) ?>" <?= $selected ?>><?= e($res) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <?php if (isset($errors['overall_result'])): ?>
+                            <span class="form-error"><?= e($errors['overall_result']) ?></span>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group">
-                    <label for="inspection_date" class="form-label">Inspection Date <span class="required">*</span></label>
-                    <input type="date"
-                           id="inspection_date"
-                           name="inspection_date"
-                           class="form-control <?= isset($errors['inspection_date']) ? 'has-error' : '' ?>"
-                           required
-                           value="<?= e($old['inspection_date'] ?? date('Y-m-d')) ?>">
-                    <?php if (isset($errors['inspection_date'])): ?>
-                        <span class="form-error"><?= e($errors['inspection_date']) ?></span>
-                    <?php endif; ?>
-                </div>
-
-                <div class="form-group">
-                    <label for="overall_result" class="form-label">Overall Result <span class="required">*</span></label>
-                    <select id="overall_result"
-                            name="overall_result"
-                            class="form-control <?= isset($errors['overall_result']) ? 'has-error' : '' ?>"
-                            required>
-                        <?php foreach ($results as $res): ?>
-                            <?php $selected = ($old['overall_result'] ?? 'Passed') === $res ? 'selected' : ''; ?>
-                            <option value="<?= e($res) ?>" <?= $selected ?>><?= e($res) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <?php if (isset($errors['overall_result'])): ?>
-                        <span class="form-error"><?= e($errors['overall_result']) ?></span>
-                    <?php endif; ?>
-                </div>
+            <!-- Section 3: Quantity Calculation & Defect Breakdown -->
+            <div class="form-section-header">
+                <h3 class="form-section-title">3. Sampling Volume &amp; Defect Breakdown</h3>
+                <span class="badge badge-muted text-xs">Quality Math</span>
             </div>
-
-            <!-- Quantity Calculation Section -->
-            <div class="card mb-4" style="background-color: #FAFAFA; border: 1px solid #E5C3C7;">
-                <div class="card-header" style="background-color: rgba(120, 0, 15, 0.05);">
-                    <h3 style="font-size: 1rem; margin: 0;">Inspection Quantities</h3>
-                    <span class="text-sm font-semibold" id="formulaIndicator" style="color: #2e7d32;">Passed + Defective = Inspected</span>
-                </div>
-                <div class="card-body">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
-                        <div class="form-group mb-0">
-                            <label for="inspected_quantity" class="form-label">Inspected Quantity <span class="required">*</span></label>
-                            <input type="number"
-                                   id="inspected_quantity"
-                                   name="inspected_quantity"
-                                   class="form-control <?= isset($errors['inspected_quantity']) ? 'has-error' : '' ?>"
-                                   min="1"
-                                   step="1"
-                                   required
+            <div class="form-section-body">
+                <!-- Quantity Calculation Box -->
+                <div class="qi-calc-box">
+                    <div class="qi-calc-box-header">
+                        <strong style="font-size: 0.88rem; color: var(--color-primary-dark);">Inspection Quantities Math</strong>
+                        <span class="text-sm font-semibold" id="formulaIndicator" style="color: #2e7d32;">Passed + Defective = Inspected</span>
+                    </div>
+                    <div class="qi-calc-box-body">
+                        <div class="qi-grid-3">
+                            <div class="form-group mb-0">
+                                <label for="inspected_quantity" class="form-label">Inspected Quantity <span class="required">*</span></label>
+                                <input type="number"
+                                       id="inspected_quantity"
+                                       name="inspected_quantity"
+                                       class="form-control <?= isset($errors['inspected_quantity']) ? 'has-error' : '' ?>"
+                                       min="1"
+                                       step="1"
+                                       required
                                    value="<?= e($old['inspected_quantity'] ?? '') ?>"
                                    placeholder="e.g., 200">
                             <?php if (isset($errors['inspected_quantity'])): ?>
@@ -339,23 +413,34 @@ include __DIR__ . '/../../includes/sidebar.php';
                     </div>
                 </div>
             </div>
+            <!-- End Section 3 -->
 
-            <div class="form-group">
-                <label for="remarks" class="form-label">Inspection Remarks / Observations</label>
-                <textarea id="remarks"
-                          name="remarks"
-                          class="form-control <?= isset($errors['remarks']) ? 'has-error' : '' ?>"
-                          rows="3"
-                          placeholder="Audit observations, root causes, corrective actions, or batch clearance notes..."><?= e($old['remarks'] ?? '') ?></textarea>
-                <?php if (isset($errors['remarks'])): ?>
-                    <span class="form-error"><?= e($errors['remarks']) ?></span>
-                <?php endif; ?>
-                <span class="form-text">Optional technical notes or recommendations.</span>
+            <!-- Section 4: Remarks & Clearance Notes -->
+            <div class="form-section-header">
+                <h3 class="form-section-title">4. Floor Observations &amp; Clearance Notes</h3>
+                <span class="badge badge-muted text-xs">Inspector Notes</span>
+            </div>
+            <div class="form-section-body">
+                <div class="form-group mb-0">
+                    <label for="remarks" class="form-label">Inspection Remarks / Observations</label>
+                    <textarea id="remarks"
+                              name="remarks"
+                              class="form-control <?= isset($errors['remarks']) ? 'has-error' : '' ?>"
+                              rows="3"
+                              placeholder="Audit observations, root causes, corrective actions, or batch clearance notes..."><?= e($old['remarks'] ?? '') ?></textarea>
+                    <?php if (isset($errors['remarks'])): ?>
+                        <span class="form-error"><?= e($errors['remarks']) ?></span>
+                    <?php endif; ?>
+                    <span class="form-text">Optional technical notes, remedial guidance, or QA supervisor recommendations.</span>
+                </div>
             </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary" <?= empty($batches) ? 'disabled' : '' ?>>Save Inspection Audit</button>
-                <a href="<?= e(url('modules/quality_inspections/index.php')) ?>" class="btn btn-secondary">Cancel</a>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <span class="text-xs text-muted">Inspection results will be logged and timestamped under your account.</span>
+                <div class="form-actions mt-0">
+                    <a href="<?= e(url('modules/quality_inspections/index.php')) ?>" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary" <?= empty($batches) ? 'disabled' : '' ?>>Save Inspection Audit</button>
+                </div>
             </div>
         </form>
     </div>

@@ -102,6 +102,111 @@ include __DIR__ . '/../../includes/sidebar.php';
     </div>
 </div>
 
+<!-- Defect Types Scoped Styles -->
+<style>
+.dt-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.dt-kpi-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1.15rem 1.25rem;
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.dt-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+.dt-kpi-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--color-text-muted);
+}
+.dt-kpi-val {
+    font-size: 1.85rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin: 0.35rem 0 0.2rem;
+    color: var(--color-text);
+}
+.dt-kpi-sub {
+    font-size: 0.78rem;
+    color: var(--color-text-subtle);
+}
+.dt-badge-category {
+    background-color: var(--color-surface-subtle);
+    color: var(--color-primary-dark);
+    border: 1px solid var(--color-border);
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-xs);
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+.btn-action-activate {
+    background-color: var(--color-success-bg);
+    border: 1px solid var(--color-success-border);
+    color: var(--color-success);
+}
+.btn-action-activate:hover {
+    background-color: #d1fae5;
+    border-color: var(--color-success);
+    color: #065f46;
+}
+</style>
+
+<?php
+// Compute in-memory KPIs without additional SQL queries
+$totalCount = count($defects);
+$activeCount = 0;
+$criticalCount = 0;
+$majorCount = 0;
+foreach ($defects as $dRow) {
+    if ((int)$dRow['is_active'] === 1) {
+        $activeCount++;
+    }
+    if ($dRow['severity'] === 'critical') {
+        $criticalCount++;
+    } elseif ($dRow['severity'] === 'major') {
+        $majorCount++;
+    }
+}
+?>
+
+<!-- KPI Metric Cards (Computed from loaded result set) -->
+<div class="dt-kpi-grid">
+    <div class="dt-kpi-card">
+        <div class="dt-kpi-label">Total Defect Types</div>
+        <div class="dt-kpi-val" style="color: var(--color-primary);"><?= number_format($totalCount) ?></div>
+        <div class="dt-kpi-sub"><?= $hasActiveFilters ? 'Matching filtered results' : 'Active and inactive catalog' ?></div>
+    </div>
+    <div class="dt-kpi-card">
+        <div class="dt-kpi-label">Active for QC</div>
+        <div class="dt-kpi-val" style="color: var(--color-success);"><?= number_format($activeCount) ?></div>
+        <div class="dt-kpi-sub">Available for inline inspections</div>
+    </div>
+    <div class="dt-kpi-card">
+        <div class="dt-kpi-label">Critical Severity</div>
+        <div class="dt-kpi-val" style="color: var(--color-danger);"><?= number_format($criticalCount) ?></div>
+        <div class="dt-kpi-sub">Zero-tolerance quality gates</div>
+    </div>
+    <div class="dt-kpi-card">
+        <div class="dt-kpi-label">Major Severity</div>
+        <div class="dt-kpi-val" style="color: var(--color-warning);"><?= number_format($majorCount) ?></div>
+        <div class="dt-kpi-sub">High-impact defect classifications</div>
+    </div>
+</div>
+
 <!-- Search & Filter Controls -->
 <div class="card mb-4">
     <div class="card-body">
@@ -192,12 +297,21 @@ include __DIR__ . '/../../includes/sidebar.php';
                                 <td>
                                     <strong>
                                         <a href="<?= e(url('modules/defect_types/view.php?id=' . (int)$d['defect_id'])) ?>">
-                                            <?= e($d['defect_code']) ?>
+                                            <code><?= e($d['defect_code']) ?></code>
                                         </a>
                                     </strong>
                                 </td>
-                                <td><?= e($d['defect_name']) ?></td>
-                                <td><?= e($d['category']) ?></td>
+                                <td>
+                                    <strong><?= e($d['defect_name']) ?></strong>
+                                    <?php if (!empty($d['description'])): ?>
+                                        <div class="text-xs text-muted" style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            <?= e($d['description']) ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <span class="dt-badge-category"><?= e($d['category']) ?></span>
+                                </td>
                                 <td>
                                     <?php
                                     $sevClass = 'badge-secondary';
@@ -233,7 +347,7 @@ include __DIR__ . '/../../includes/sidebar.php';
                                                 </button>
                                             <?php else: ?>
                                                 <button type="submit"
-                                                        class="btn btn-sm btn-primary"
+                                                        class="btn btn-sm btn-action-activate"
                                                         data-confirm="Are you sure you want to reactivate this defect type?">
                                                     Reactivate
                                                 </button>
