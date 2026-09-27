@@ -237,10 +237,15 @@ include __DIR__ . '/../../includes/header.php';
 include __DIR__ . '/../../includes/sidebar.php';
 ?>
 
-<div class="page-header">
+<style>
+.m3-bottlenecks .m3-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;margin-bottom:1rem;padding:1.35rem 1.5rem;border:1px solid var(--color-border-subtle);border-left:4px solid var(--color-danger);border-radius:var(--radius-lg);background:var(--color-surface);box-shadow:var(--shadow-sm)}.m3-bottlenecks .m3-kicker{margin-bottom:.35rem;color:var(--color-danger);font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.m3-bottlenecks .m3-hero h1{margin:0 0 .25rem}.m3-bottlenecks .module-grid .card{border-top:3px solid var(--color-border);box-shadow:var(--shadow-xs)}.m3-bottlenecks .module-grid .card:first-child{border-top-color:var(--color-danger)}.m3-bottlenecks .m3-filter{border-left:4px solid var(--color-primary)}.m3-bottlenecks .card-header{background:var(--color-surface)}.m3-bottlenecks .table td{vertical-align:top}@media(max-width:760px){.m3-bottlenecks .m3-hero{display:block}.m3-bottlenecks .m3-hero .page-actions{margin-top:1rem}.m3-bottlenecks .m3-hero .btn{width:100%;margin-bottom:.5rem}}
+</style>
+<div class="m3-bottlenecks">
+<div class="page-header m3-hero">
     <div class="page-title-group">
+        <div class="m3-kicker">Exception control</div>
         <h1>Bottleneck Monitoring</h1>
-        <div class="page-subtitle">Module 3 &bull; Feature 3 &bull; Access: Admin, Production Manager</div>
+        <div class="page-subtitle">Prioritize overdue production stages, understand delay exposure, and open the affected lifecycle record.</div>
     </div>
     <div class="page-actions">
         <a href="<?= e(url('modules/stage_progress/index.php')) ?>" class="btn btn-secondary">Stage Progress History</a>
@@ -324,7 +329,7 @@ include __DIR__ . '/../../includes/sidebar.php';
 </div>
 
 <!-- Search & Filter Controls -->
-<div class="card mb-4">
+<div class="card mb-4 m3-filter">
     <div class="card-body">
         <form method="get" action="<?= e(url('modules/bottlenecks/index.php')) ?>" class="filter-bar">
             <!-- Text Search -->
@@ -560,6 +565,7 @@ include __DIR__ . '/../../includes/sidebar.php';
             </div>
         <?php endif; ?>
     </div>
+</div>
 </div>
 
 <?php
