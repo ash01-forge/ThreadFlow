@@ -272,4 +272,5 @@ include __DIR__ . '/../../includes/sidebar.php';
 </div>
 
 <?php
+echo '<link rel="stylesheet" href="modern-ui.css">';
 include __DIR__ . '/../../includes/footer.php';

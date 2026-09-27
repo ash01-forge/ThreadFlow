@@ -1,0 +1,281 @@
+/* Member 2 - Supplier Management. Loaded only by this module's UI pages. */
+:root {
+    --m2-maroon: #78000f;
+    --m2-maroon-dark: #57000b;
+    --m2-rose: #fcebed;
+    --m2-surface: #ffffff;
+    --m2-border: #ead0d4;
+    --m2-muted: #6f5a5e;
+    --m2-success: #16794a;
+    --m2-warning: #a15c00;
+    --m2-danger: #b4232f;
+    --m2-info: #2367a8;
+    --m2-shadow: 0 10px 28px rgba(83, 0, 12, 0.08);
+}
+
+.app-main {
+    background:
+        radial-gradient(circle at 96% 2%, rgba(120, 0, 15, 0.07), transparent 24rem),
+        var(--m2-rose);
+}
+
+.content-container {
+    max-width: 1240px;
+    padding-top: clamp(1rem, 2vw, 1.75rem);
+    padding-bottom: 2.5rem;
+}
+
+.page-header {
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding: 1.15rem 1.25rem;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid var(--m2-border);
+    border-radius: 16px;
+    box-shadow: var(--m2-shadow);
+}
+
+.page-title-group h1 {
+    margin-bottom: 0.25rem;
+    color: var(--m2-maroon);
+    font-size: clamp(1.55rem, 2.5vw, 2.15rem);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+}
+
+.page-subtitle {
+    max-width: 68ch;
+    color: var(--m2-muted);
+    line-height: 1.5;
+}
+
+.page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.card {
+    overflow: hidden;
+    border: 1px solid var(--m2-border);
+    border-radius: 16px;
+    box-shadow: var(--m2-shadow);
+}
+
+.card + .card { margin-top: 1rem; }
+
+.card-header {
+    min-height: 3.25rem;
+    padding: 0.85rem 1.1rem;
+    background: linear-gradient(180deg, #fffafa, #faeef0);
+    border-bottom-color: var(--m2-border);
+}
+
+.card-header h2,
+.card-header h3 {
+    color: var(--m2-maroon-dark);
+    font-size: 1.05rem;
+    line-height: 1.3;
+}
+
+.card-body { padding: clamp(1rem, 2.2vw, 1.4rem); }
+
+.filter-bar {
+    align-items: end;
+    gap: 0.75rem;
+    padding: 0.15rem;
+}
+
+.filter-bar .form-label {
+    margin-bottom: 0.4rem;
+    color: #4f3439;
+    font-size: 0.78rem;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+}
+
+.form-control {
+    min-height: 2.75rem;
+    border-color: #dcb9bf;
+    border-radius: 10px;
+    background-color: #fff;
+}
+
+.form-control:hover { border-color: #c88f98; }
+
+.form-control:focus {
+    border-color: var(--m2-maroon);
+    box-shadow: 0 0 0 3px rgba(120, 0, 15, 0.11);
+}
+
+textarea.form-control { min-height: 7rem; resize: vertical; }
+
+.form-label {
+    color: #3e292d;
+    font-weight: 700;
+}
+
+.form-text {
+    margin-top: 0.4rem;
+    color: var(--m2-muted);
+    line-height: 1.45;
+}
+
+.form-error {
+    display: block;
+    margin-top: 0.38rem;
+    font-weight: 700;
+}
+
+.form-actions,
+.filter-actions,
+.row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn {
+    min-height: 2.55rem;
+    border-radius: 10px;
+    font-weight: 750;
+    letter-spacing: 0.005em;
+    box-shadow: none;
+}
+
+.btn-primary {
+    background: var(--m2-maroon);
+    border-color: var(--m2-maroon);
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+    background: var(--m2-maroon-dark);
+    border-color: var(--m2-maroon-dark);
+}
+
+.btn-secondary { background: #fff; }
+.btn-danger { color: var(--m2-danger); border-color: #dca9af; }
+
+.badge {
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+}
+
+.badge-success { color: #0c6038; background: #e5f6ed; border-color: #a7dbc0; }
+.badge-warning { color: #7b4700; background: #fff3d5; border-color: #ebcc7d; }
+.badge-danger { color: #98202a; background: #fde8eb; border-color: #e8afb6; }
+.badge-info { color: #17588d; background: #e7f2fd; border-color: #acd0ee; }
+.badge-muted { color: #5f5053; background: #f3ebed; border-color: #d9c7ca; }
+
+.table-responsive {
+    border-radius: 0 0 15px 15px;
+    scrollbar-color: #c99aa2 #f7edef;
+}
+
+.table { margin-bottom: 0; }
+
+.table thead th {
+    padding: 0.8rem 0.9rem;
+    background: #fbf1f3;
+    color: #5a121c;
+    font-size: 0.72rem;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.table tbody td {
+    padding: 0.88rem 0.9rem;
+    vertical-align: middle;
+    border-bottom-color: #f0dfe2;
+}
+
+.table tbody tr:hover { background: #fff8f9; }
+
+.empty-state {
+    margin: 0;
+    padding: clamp(2rem, 5vw, 3.5rem) 1.25rem;
+    border: 1px dashed #d9aeb5;
+    border-radius: 14px;
+    background: #fffafa;
+}
+
+.alert {
+    border-width: 1px 1px 1px 4px;
+    border-radius: 12px;
+    box-shadow: 0 5px 16px rgba(72, 0, 11, 0.05);
+}
+
+.card-form,
+.card-narrow { max-width: 780px; }
+
+.card-medium { max-width: 960px; }
+
+.card-form .form-group,
+.card-narrow .form-group {
+    padding: 0.85rem;
+    border: 1px solid #f0dfe2;
+    border-radius: 12px;
+    background: #fffdfd;
+}
+
+.card-form .form-group:focus-within,
+.card-narrow .form-group:focus-within {
+    border-color: #d49ba4;
+    background: #fff9fa;
+}
+
+.card-form .form-actions,
+.card-narrow .form-actions {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--m2-border);
+}
+
+dl, .detail-grid, .details-grid { line-height: 1.5; }
+
+.detail-row,
+.details-row {
+    padding: 0.85rem 0;
+    border-bottom: 1px solid #f0dfe2;
+}
+
+@media (max-width: 860px) {
+    .page-header { flex-direction: column; }
+    .page-actions, .page-actions .btn { width: 100%; }
+    .filter-bar { align-items: stretch; }
+    .filter-field, .filter-field-grow, .filter-actions { width: 100%; }
+    .filter-actions .btn { flex: 1 1 9rem; }
+}
+
+@media (max-width: 680px) {
+    .content-container { padding-inline: 0.75rem; }
+    .page-header { padding: 1rem; border-radius: 13px; }
+    .card { border-radius: 13px; }
+    .card-body { padding: 0.9rem; }
+    .table thead { display: none; }
+    .table, .table tbody, .table tr, .table td { display: block; width: 100%; }
+    .table tbody { padding: 0.75rem; }
+    .table tbody tr {
+        margin-bottom: 0.75rem;
+        padding: 0.4rem 0.8rem;
+        border: 1px solid var(--m2-border);
+        border-radius: 12px;
+        background: #fff;
+    }
+    .table tbody td { padding: 0.45rem 0; border: 0; }
+    .row-actions { padding-top: 0.5rem; border-top: 1px solid #f0dfe2; }
+    .row-actions .btn { flex: 1 1 7rem; }
+    .form-actions .btn { flex: 1 1 100%; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .btn, .card, .form-control { transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease; }
+}

@@ -90,6 +90,11 @@ include __DIR__ . '/../../includes/sidebar.php';
     <div class="page-actions">
         <a href="<?= e(url('modules/fabric_receiving/index.php')) ?>" class="btn btn-secondary">Back to Receiving List</a>
         <a href="<?= e(url('modules/fabric_receiving/edit.php?id=' . (int) $lot['fabric_lot_id'])) ?>" class="btn btn-secondary">Edit Lot Details</a>
+        <a href="<?= e(url('modules/fabric_inspections/create.php?lot_id=' . (int) $lot['fabric_lot_id'])) ?>" class="btn btn-secondary">Inspect Lot</a>
+        <a href="<?= e(url('modules/fabric_allocations/traceability.php?lot_id=' . (int) $lot['fabric_lot_id'])) ?>" class="btn btn-secondary">Trace Lot</a>
+        <?php if (in_array($lot['inspection_status'], ['Passed', 'Conditionally Approved'], true)): ?>
+            <a href="<?= e(url('modules/fabric_allocations/create.php?lot_id=' . (int) $lot['fabric_lot_id'])) ?>" class="btn btn-secondary">Allocate Fabric</a>
+        <?php endif; ?>
         <a href="<?= e(url('modules/suppliers/view.php?id=' . (int) $lot['supplier_id'])) ?>" class="btn btn-primary">View Supplier Profile</a>
     </div>
 </div>
@@ -252,4 +257,5 @@ include __DIR__ . '/../../includes/sidebar.php';
 </div>
 
 <?php
+echo '<link rel="stylesheet" href="modern-ui.css">';
 include __DIR__ . '/../../includes/footer.php';

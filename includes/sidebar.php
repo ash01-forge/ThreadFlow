@@ -232,6 +232,67 @@ $userRole = $currentUser['role'] ?? '';
                     </a>
                 </li>
 
+                <!-- Member 2: Fabric inspection workflow -->
+                <li>
+                    <a
+                        href="<?= e(url('modules/fabric_inspections/index.php')) ?>"
+                        class="nav-link <?= $currentNav === 'fabric_inspections' ? 'active' : '' ?>"
+                    >
+                        <span class="nav-link-main">
+                            <svg
+                                class="nav-icon"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path d="M9 11l3 3L22 4"></path>
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                            </svg>
+
+                            <span>Fabric Inspections</span>
+                        </span>
+
+                        <span class="nav-badge badge-muted">M2</span>
+                    </a>
+                </li>
+
+                <!-- Member 2: Fabric allocation and traceability workflow -->
+                <li>
+                    <a
+                        href="<?= e(url('modules/fabric_allocations/index.php')) ?>"
+                        class="nav-link <?= $currentNav === 'fabric_allocations' ? 'active' : '' ?>"
+                    >
+                        <span class="nav-link-main">
+                            <svg
+                                class="nav-icon"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                                <path d="M8 12h8"></path>
+                                <path d="m13 9 3 3-3 3"></path>
+                            </svg>
+
+                            <span>Allocation &amp; Traceability</span>
+                        </span>
+
+                        <span class="nav-badge badge-muted">M2</span>
+                    </a>
+                </li>
+
                 <li>
                     <a
                         href="<?= e(url('modules/production_batches/index.php')) ?>"
