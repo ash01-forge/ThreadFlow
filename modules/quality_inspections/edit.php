@@ -142,46 +142,168 @@ include __DIR__ . '/../../includes/sidebar.php';
     </div>
 </div>
 
-<div class="card card-form" style="max-width: 900px;">
+<!-- Scoped Edit Inspection Styles -->
+<style>
+.qi-form-card {
+    max-width: 920px;
+    margin: 0 auto 1.5rem;
+}
+.record-summary-banner {
+    max-width: 920px;
+    margin: 0 auto 1.25rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1.15rem 1.35rem;
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.record-summary-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.record-summary-code {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    background: var(--color-primary-subtle);
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+}
+.form-section-header {
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding: 0.85rem 1.25rem;
+    background: var(--color-surface-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.form-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-primary-dark);
+    margin: 0;
+}
+.form-section-body {
+    padding: 1.25rem;
+}
+.qi-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.15rem;
+}
+.qi-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+.qi-calc-box {
+    background: #FFFDFD;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+}
+.qi-calc-box-header {
+    background: var(--color-primary-subtle);
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.qi-calc-box-body {
+    padding: 1.15rem;
+}
+</style>
+
+<!-- Record Summary Header Card -->
+<div class="record-summary-banner">
+    <div>
+        <div class="text-xs text-muted mb-1">INSPECTION RECORD #<?= (int) $inspection['inspection_id'] ?></div>
+        <div class="record-summary-meta">
+            <span class="record-summary-code"><code><?= e($inspection['inspection_number']) ?></code></span>
+            <strong>Audit Date: <?= e(date('M d, Y', strtotime($inspection['inspection_date']))) ?></strong>
+        </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge badge-info"><?= e($inspection['inspection_stage']) ?></span>
+        <?php
+        $resBadge = 'badge-secondary';
+        if ($inspection['overall_result'] === 'Passed') {
+            $resBadge = 'badge-success';
+        } elseif ($inspection['overall_result'] === 'Failed') {
+            $resBadge = 'badge-danger';
+        } elseif ($inspection['overall_result'] === 'Pending Review') {
+            $resBadge = 'badge-warning';
+        }
+        ?>
+        <span class="badge <?= $resBadge ?>"><?= e($inspection['overall_result']) ?></span>
+    </div>
+</div>
+
+<div class="card qi-form-card">
     <div class="card-header">
-        <h2>Update Inspection Record</h2>
+        <div>
+            <h2>Update Inspection Record</h2>
+            <div class="text-xs text-muted">Adjust defect counts, sampling volumes, or audit remarks</div>
+        </div>
         <span class="badge badge-warning">Editing</span>
     </div>
-    <div class="card-body">
+    <div class="card-body p-0">
         <form action="<?= e(url('modules/quality_inspections/update.php')) ?>" method="post" id="inspectionForm" novalidate>
             <?= csrf_field() ?>
             <input type="hidden" name="inspection_id" value="<?= (int) $inspection['inspection_id'] ?>">
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group">
-                    <label for="inspection_number" class="form-label">Inspection Number <span class="required">*</span></label>
-                    <input type="text"
-                           id="inspection_number"
-                           name="inspection_number"
-                           class="form-control <?= isset($errors['inspection_number']) ? 'has-error' : '' ?>"
-                           maxlength="50"
-                           required
-                           value="<?= e($getValue('inspection_number')) ?>"
-                           placeholder="e.g., INS-20260917-001">
-                    <?php if (isset($errors['inspection_number'])): ?>
-                        <span class="form-error"><?= e($errors['inspection_number']) ?></span>
-                    <?php endif; ?>
-                    <span class="form-text">Unique alphanumeric inspection audit identifier.</span>
-                </div>
+            <!-- Section 1: Audit Header & Identity -->
+            <div class="form-section-header">
+                <h3 class="form-section-title">1. Audit Identification &amp; Inspector</h3>
+                <span class="badge badge-muted text-xs">Primary Keys</span>
+            </div>
+            <div class="form-section-body">
+                <div class="qi-grid-2">
+                    <div class="form-group mb-0">
+                        <label for="inspection_number" class="form-label">Inspection Number <span class="required">*</span></label>
+                        <input type="text"
+                               id="inspection_number"
+                               name="inspection_number"
+                               class="form-control <?= isset($errors['inspection_number']) ? 'has-error' : '' ?>"
+                               maxlength="50"
+                               required
+                               value="<?= e($getValue('inspection_number')) ?>"
+                               placeholder="e.g., INS-20260917-001">
+                        <?php if (isset($errors['inspection_number'])): ?>
+                            <span class="form-error"><?= e($errors['inspection_number']) ?></span>
+                        <?php endif; ?>
+                        <span class="form-text">Unique alphanumeric inspection audit identifier.</span>
+                    </div>
 
-                <div class="form-group">
-                    <label class="form-label">Original Inspector</label>
-                    <input type="text"
-                           class="form-control"
-                           value="<?= e($inspection['inspector_name'] ?: $inspection['inspector_username']) ?> (<?= e(ucwords(str_replace('_', ' ', $inspection['inspector_role']))) ?>)"
-                           readonly
-                           disabled
-                           style="background-color: var(--color-bg, #FCEBED); cursor: not-allowed;">
-                    <span class="form-text">Audit inspector identity cannot be altered.</span>
+                    <div class="form-group mb-0">
+                        <label class="form-label">Original Inspector</label>
+                        <input type="text"
+                               class="form-control"
+                               value="<?= e($inspection['inspector_name'] ?: $inspection['inspector_username']) ?> (<?= e(ucwords(str_replace('_', ' ', $inspection['inspector_role']))) ?>)"
+                               readonly
+                               disabled
+                               style="background-color: var(--color-bg, #FCEBED); cursor: not-allowed;">
+                        <span class="form-text">Audit inspector identity cannot be altered.</span>
+                    </div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+            <!-- Section 2: Production Batch & Stage Context -->
+            <div class="form-section-header">
+                <h3 class="form-section-title">2. Batch Routing &amp; Stage Evaluation</h3>
+                <span class="badge badge-muted text-xs">Floor Context</span>
+            </div>
+            <div class="form-section-body">
                 <div class="form-group">
                     <label for="batch_id" class="form-label">Production Batch <span class="required">*</span></label>
                     <select id="batch_id"
@@ -202,62 +324,68 @@ include __DIR__ . '/../../includes/sidebar.php';
                     <?php endif; ?>
                 </div>
 
-                <div class="form-group">
-                    <label for="inspection_stage" class="form-label">Inspection Stage <span class="required">*</span></label>
-                    <select id="inspection_stage"
-                            name="inspection_stage"
-                            class="form-control <?= isset($errors['inspection_stage']) ? 'has-error' : '' ?>"
-                            required>
-                        <?php foreach ($stages as $stg): ?>
-                            <?php $selected = ($getValue('inspection_stage') === $stg) ? 'selected' : ''; ?>
-                            <option value="<?= e($stg) ?>" <?= $selected ?>><?= e($stg) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <?php if (isset($errors['inspection_stage'])): ?>
-                        <span class="form-error"><?= e($errors['inspection_stage']) ?></span>
-                    <?php endif; ?>
+                <div class="qi-grid-3">
+                    <div class="form-group mb-0">
+                        <label for="inspection_stage" class="form-label">Inspection Stage <span class="required">*</span></label>
+                        <select id="inspection_stage"
+                                name="inspection_stage"
+                                class="form-control <?= isset($errors['inspection_stage']) ? 'has-error' : '' ?>"
+                                required>
+                            <?php foreach ($stages as $stg): ?>
+                                <?php $selected = ($getValue('inspection_stage') === $stg) ? 'selected' : ''; ?>
+                                <option value="<?= e($stg) ?>" <?= $selected ?>><?= e($stg) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <?php if (isset($errors['inspection_stage'])): ?>
+                            <span class="form-error"><?= e($errors['inspection_stage']) ?></span>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="form-group mb-0">
+                        <label for="inspection_date" class="form-label">Inspection Date <span class="required">*</span></label>
+                        <input type="date"
+                               id="inspection_date"
+                               name="inspection_date"
+                               class="form-control <?= isset($errors['inspection_date']) ? 'has-error' : '' ?>"
+                               required
+                               value="<?= e($getValue('inspection_date')) ?>">
+                        <?php if (isset($errors['inspection_date'])): ?>
+                            <span class="form-error"><?= e($errors['inspection_date']) ?></span>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="form-group mb-0">
+                        <label for="overall_result" class="form-label">Overall Result <span class="required">*</span></label>
+                        <select id="overall_result"
+                                name="overall_result"
+                                class="form-control <?= isset($errors['overall_result']) ? 'has-error' : '' ?>"
+                                required>
+                            <?php foreach ($results as $res): ?>
+                                <?php $selected = ($getValue('overall_result') === $res) ? 'selected' : ''; ?>
+                                <option value="<?= e($res) ?>" <?= $selected ?>><?= e($res) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <?php if (isset($errors['overall_result'])): ?>
+                            <span class="form-error"><?= e($errors['overall_result']) ?></span>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group">
-                    <label for="inspection_date" class="form-label">Inspection Date <span class="required">*</span></label>
-                    <input type="date"
-                           id="inspection_date"
-                           name="inspection_date"
-                           class="form-control <?= isset($errors['inspection_date']) ? 'has-error' : '' ?>"
-                           required
-                           value="<?= e($getValue('inspection_date')) ?>">
-                    <?php if (isset($errors['inspection_date'])): ?>
-                        <span class="form-error"><?= e($errors['inspection_date']) ?></span>
-                    <?php endif; ?>
-                </div>
-
-                <div class="form-group">
-                    <label for="overall_result" class="form-label">Overall Result <span class="required">*</span></label>
-                    <select id="overall_result"
-                            name="overall_result"
-                            class="form-control <?= isset($errors['overall_result']) ? 'has-error' : '' ?>"
-                            required>
-                        <?php foreach ($results as $res): ?>
-                            <?php $selected = ($getValue('overall_result') === $res) ? 'selected' : ''; ?>
-                            <option value="<?= e($res) ?>" <?= $selected ?>><?= e($res) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <?php if (isset($errors['overall_result'])): ?>
-                        <span class="form-error"><?= e($errors['overall_result']) ?></span>
-                    <?php endif; ?>
-                </div>
+            <!-- Section 3: Quantity Calculation & Defect Breakdown -->
+            <div class="form-section-header">
+                <h3 class="form-section-title">3. Sampling Volume &amp; Defect Breakdown</h3>
+                <span class="badge badge-muted text-xs">Quality Math</span>
             </div>
-
-            <!-- Quantity Calculation Section -->
-            <div class="card mb-4" style="background-color: #FAFAFA; border: 1px solid #E5C3C7;">
-                <div class="card-header" style="background-color: rgba(120, 0, 15, 0.05);">
-                    <h3 style="font-size: 1rem; margin: 0;">Inspection Quantities</h3>
-                    <span class="text-sm font-semibold" id="formulaIndicator" style="color: #2e7d32;">Passed + Defective = Inspected</span>
-                </div>
-                <div class="card-body">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+            <div class="form-section-body">
+                <!-- Quantity Calculation Box -->
+                <div class="qi-calc-box">
+                    <div class="qi-calc-box-header">
+                        <strong style="font-size: 0.88rem; color: var(--color-primary-dark);">Inspection Quantities Math</strong>
+                        <span class="text-sm font-semibold" id="formulaIndicator" style="color: #2e7d32;">Passed + Defective = Inspected</span>
+                    </div>
+                    <div class="qi-calc-box-body">
+                        <div class="qi-grid-3">
                         <div class="form-group mb-0">
                             <label for="inspected_quantity" class="form-label">Inspected Quantity <span class="required">*</span></label>
                             <input type="number"
@@ -380,21 +508,33 @@ include __DIR__ . '/../../includes/sidebar.php';
                     </div>
                 </div>
             </div>
+            <!-- End Section 3 -->
 
-            <div class="form-group">
-                <label for="remarks" class="form-label">Inspection Remarks / Observations</label>
-                <textarea id="remarks"
-                          name="remarks"
-                          class="form-control <?= isset($errors['remarks']) ? 'has-error' : '' ?>"
-                          rows="3"><?= e($getValue('remarks')) ?></textarea>
-                <?php if (isset($errors['remarks'])): ?>
-                    <span class="form-error"><?= e($errors['remarks']) ?></span>
-                <?php endif; ?>
+            <!-- Section 4: Remarks & Clearance Notes -->
+            <div class="form-section-header">
+                <h3 class="form-section-title">4. Floor Observations &amp; Clearance Notes</h3>
+                <span class="badge badge-muted text-xs">Inspector Notes</span>
+            </div>
+            <div class="form-section-body">
+                <div class="form-group mb-0">
+                    <label for="remarks" class="form-label">Inspection Remarks / Observations</label>
+                    <textarea id="remarks"
+                              name="remarks"
+                              class="form-control <?= isset($errors['remarks']) ? 'has-error' : '' ?>"
+                              rows="3"><?= e($getValue('remarks')) ?></textarea>
+                    <?php if (isset($errors['remarks'])): ?>
+                        <span class="form-error"><?= e($errors['remarks']) ?></span>
+                    <?php endif; ?>
+                    <span class="form-text">Optional technical notes, remedial guidance, or QA supervisor recommendations.</span>
+                </div>
             </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Update Inspection</button>
-                <a href="<?= e(url('modules/quality_inspections/view.php?id=' . (int)$inspection['inspection_id'])) ?>" class="btn btn-secondary">Cancel</a>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <span class="text-xs text-muted">Updates will recalculate defect sums and update the audit log.</span>
+                <div class="form-actions mt-0">
+                    <a href="<?= e(url('modules/quality_inspections/view.php?id=' . (int)$inspection['inspection_id'])) ?>" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Update Inspection</button>
+                </div>
             </div>
         </form>
     </div>
