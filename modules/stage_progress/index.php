@@ -153,10 +153,21 @@ include __DIR__ . '/../../includes/header.php';
 include __DIR__ . '/../../includes/sidebar.php';
 ?>
 
-<div class="page-header">
+<style>
+.m3-progress .m3-hero { display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; margin-bottom:1rem; padding:1.35rem 1.5rem; border:1px solid var(--color-border-subtle); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:var(--shadow-sm); }
+.m3-progress .m3-kicker { margin-bottom:.35rem; color:var(--color-primary-light); font-size:.68rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+.m3-progress .m3-hero h1 { margin:0 0 .25rem; }
+.m3-progress .m3-filter { border-left:4px solid var(--color-primary); }
+.m3-progress .card-header { background:var(--color-surface); }
+.m3-progress .table td { vertical-align:top; }
+@media(max-width:760px){.m3-progress .m3-hero{display:block}.m3-progress .m3-hero .page-actions{margin-top:1rem}.m3-progress .m3-hero .btn{width:100%}}
+</style>
+<div class="m3-progress">
+<div class="page-header m3-hero">
     <div class="page-title-group">
+        <div class="m3-kicker">Factory lifecycle</div>
         <h1>Stage Progress History</h1>
-        <div class="page-subtitle">Module 3 &bull; Ownership: Member 3 &bull; Access: Admin, Production Manager</div>
+        <div class="page-subtitle">Trace batch movement, quantities, process loss, responsibility, and timing across production stages.</div>
     </div>
     <div class="page-actions">
         <a href="<?= e(url('modules/stage_progress/create.php')) ?>" class="btn btn-primary">Record Stage Progress</a>
@@ -171,7 +182,7 @@ include __DIR__ . '/../../includes/sidebar.php';
 <?php endif; ?>
 
 <!-- Search & Filter Controls -->
-<div class="card mb-4">
+<div class="card mb-4 m3-filter">
     <div class="card-body">
         <form method="get" action="<?= e(url('modules/stage_progress/index.php')) ?>" class="filter-bar">
             <div class="filter-field-grow">
@@ -343,6 +354,7 @@ include __DIR__ . '/../../includes/sidebar.php';
             </div>
         <?php endif; ?>
     </div>
+</div>
 </div>
 
 <?php

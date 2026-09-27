@@ -50,17 +50,42 @@ include __DIR__ . '/../../includes/header.php';
 include __DIR__ . '/../../includes/sidebar.php';
 ?>
 
-<div class="page-header">
+<style>
+.m3-batch-form .m3-form-head { display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; margin-bottom:1rem; }
+.m3-batch-form .m3-kicker { margin-bottom:.35rem; color:var(--color-primary-light); font-size:.68rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+.m3-batch-form .m3-form-card { max-width:920px; border-color:var(--color-border-subtle); box-shadow:var(--shadow-md); }
+.m3-batch-form .m3-form-card > .card-header { background:var(--color-primary-subtle); }
+.m3-batch-form .m3-section-label { display:flex; gap:.75rem; align-items:flex-start; margin:1.4rem -1.35rem 1rem; padding:1rem 1.35rem; border-top:1px solid var(--color-border-subtle); border-bottom:1px solid var(--color-border-subtle); background:var(--color-surface-subtle); }
+.m3-batch-form .m3-section-label:first-of-type { margin-top:-1.35rem; border-top:0; }
+.m3-batch-form .m3-step { display:grid; place-items:center; width:28px; height:28px; flex:0 0 28px; border-radius:50%; color:var(--color-surface); background:var(--color-primary); font-size:.75rem; font-weight:800; }
+.m3-batch-form .m3-section-label h3 { margin:0; color:var(--color-text); font-size:.95rem; }
+.m3-batch-form .m3-section-label p { margin:.2rem 0 0; color:var(--color-text-muted); font-size:.78rem; }
+.m3-batch-form .m3-two-col { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.m3-batch-form .m3-status-options { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; }
+.m3-batch-form .m3-status-option { position:relative; cursor:pointer; }
+.m3-batch-form .m3-status-option input { position:absolute; opacity:0; pointer-events:none; }
+.m3-batch-form .m3-status-card { display:block; padding:.8rem .6rem; border:2px solid var(--color-border); border-radius:var(--radius-md); background:var(--color-surface); text-align:center; font-size:.8rem; font-weight:700; }
+.m3-batch-form .m3-status-card strong,.m3-batch-form .m3-status-card small { display:block; }.m3-batch-form .m3-status-card small { margin-top:.25rem; color:var(--color-text-muted); font-size:.68rem; font-weight:500; line-height:1.35; }
+.m3-batch-form .m3-status-option input:checked + .m3-status-card { border-color:var(--color-primary); color:var(--color-primary); background:var(--color-primary-subtle); box-shadow:var(--shadow-focus); }
+.m3-batch-form .m3-status-option[data-status="On Hold"] input:checked + .m3-status-card { border-color:var(--color-warning); color:var(--color-warning); background:var(--color-warning-bg); }
+.m3-batch-form .m3-status-option[data-status="Completed"] input:checked + .m3-status-card { border-color:var(--color-success); color:var(--color-success); background:var(--color-success-bg); }
+.m3-batch-form .m3-status-option input:focus-visible + .m3-status-card { outline:3px solid rgba(120,0,15,.2); outline-offset:2px; }
+.m3-batch-form .form-actions { margin:1.5rem -1.35rem -1.35rem; padding:1rem 1.35rem; border-top:1px solid var(--color-border-subtle); background:var(--color-surface-subtle); }
+@media (max-width:680px) { .m3-batch-form .m3-form-head { display:block; } .m3-batch-form .m3-form-head .page-actions { margin-top:1rem; } .m3-batch-form .m3-two-col { grid-template-columns:1fr; } .m3-batch-form .m3-status-options { grid-template-columns:repeat(2,1fr); } .m3-batch-form .form-actions .btn { width:100%; margin-bottom:.5rem; } }
+</style>
+<div class="m3-batch-form">
+<div class="page-header m3-form-head">
     <div class="page-title-group">
+        <div class="m3-kicker">New batch workflow</div>
         <h1>Add Production Batch</h1>
-        <div class="page-subtitle">Module 3 &bull; Ownership: Member 3 &bull; Access: Admin, Production Manager</div>
+        <div class="page-subtitle">Define the order, line allocation, quantity, schedule, and starting production state.</div>
     </div>
     <div class="page-actions">
         <a href="<?= e(url('modules/production_batches/index.php')) ?>" class="btn btn-secondary">Back to Batch List</a>
     </div>
 </div>
 
-<div class="card card-form">
+<div class="card card-form m3-form-card">
     <div class="card-header">
         <h2>New Production Batch Details</h2>
     </div>
@@ -75,6 +100,8 @@ include __DIR__ . '/../../includes/sidebar.php';
 
         <form action="<?= e(url('modules/production_batches/store.php')) ?>" method="post" novalidate>
             <?= csrf_field() ?>
+
+            <div class="m3-section-label"><span class="m3-step">1</span><div><h3>Batch identity</h3><p>Create the unique reference used to trace this production lot.</p></div></div>
 
             <div class="form-group">
                 <label for="batch_number" class="form-label">Batch Number <span class="required">*</span></label>
@@ -91,6 +118,8 @@ include __DIR__ . '/../../includes/sidebar.php';
                 <?php endif; ?>
                 <span class="form-text">Unique tracking identifier for this production lot (letters, numbers, hyphens).</span>
             </div>
+
+            <div class="m3-section-label"><span class="m3-step">2</span><div><h3>Order allocation and production plan</h3><p>Connect the buyer order and line, then set volume and starting status.</p></div></div>
 
             <div class="form-group">
                 <label for="order_id" class="form-label">Buyer Order <span class="required">*</span></label>
@@ -148,27 +177,22 @@ include __DIR__ . '/../../includes/sidebar.php';
                 <span class="form-text">Must be a whole number greater than zero.</span>
             </div>
 
-            <div class="form-group">
-                <label for="status" class="form-label">Batch Status <span class="required">*</span></label>
-                <select id="status"
-                        name="status"
-                        class="form-control <?= isset($errors['status']) ? 'has-error' : '' ?>"
-                        required>
+            <fieldset class="form-group" style="border:0;padding:0;margin-bottom:1.25rem;">
+                <legend class="form-label">Batch Status <span class="required">*</span></legend>
+                <div class="m3-status-options <?= isset($errors['status']) ? 'has-error' : '' ?>">
                     <?php foreach ($statuses as $st): ?>
-                        <?php 
-                        $currentSelected = ($old['status'] ?? 'Planned') === $st ? 'selected' : ''; 
-                        ?>
-                        <option value="<?= e($st) ?>" <?= $currentSelected ?>>
-                            <?= e($st) ?>
-                        </option>
+                        <?php $statusHelp = ['Planned' => 'Scheduled; production has not started.', 'In Progress' => 'Work is active on the factory floor.', 'On Hold' => 'Production is temporarily paused.', 'Completed' => 'The planned batch work is finished.'][$st]; ?>
+                        <label class="m3-status-option" data-status="<?= e($st) ?>"><input type="radio" name="status" value="<?= e($st) ?>" required <?= ($old['status'] ?? 'Planned') === $st ? 'checked' : '' ?>><span class="m3-status-card"><strong><?= e($st) ?></strong><small><?= e($statusHelp) ?></small></span></label>
                     <?php endforeach; ?>
-                </select>
+                </div>
                 <?php if (isset($errors['status'])): ?>
                     <span class="form-error"><?= e($errors['status']) ?></span>
                 <?php endif; ?>
-            </div>
+            </fieldset>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="m3-section-label"><span class="m3-step">3</span><div><h3>Schedule and floor notes</h3><p>Define the production window and any instructions needed by the floor team.</p></div></div>
+
+            <div class="m3-two-col">
                 <div class="form-group">
                     <label for="start_date" class="form-label">Start Date <span class="required">*</span></label>
                     <input type="date"
@@ -216,6 +240,7 @@ include __DIR__ . '/../../includes/sidebar.php';
             </div>
         </form>
     </div>
+</div>
 </div>
 
 <?php

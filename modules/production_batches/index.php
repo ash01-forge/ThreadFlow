@@ -93,18 +93,52 @@ try {
     }
 }
 
+// Presentation-only summaries derived from the records already loaded above.
+$batchStatusCounts = array_fill_keys($validStatuses, 0);
+$plannedPieces = 0;
+foreach ($batches as $batchRow) {
+    if (isset($batchStatusCounts[$batchRow['status']])) {
+        $batchStatusCounts[$batchRow['status']]++;
+    }
+    $plannedPieces += (int) $batchRow['planned_quantity'];
+}
+
 include __DIR__ . '/../../includes/header.php';
 include __DIR__ . '/../../includes/sidebar.php';
 ?>
 
-<div class="page-header">
+<style>
+.m3-batches { --m3-line: var(--color-border-subtle); --m3-soft: var(--color-primary-subtle); }
+.m3-batches .m3-hero { display:flex; justify-content:space-between; align-items:flex-end; gap:1.25rem; margin-bottom:1rem; padding:1.35rem 1.5rem; border:1px solid var(--m3-line); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:var(--shadow-sm); }
+.m3-batches .m3-kicker { margin-bottom:.35rem; color:var(--color-primary-light); font-size:.68rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+.m3-batches .m3-hero h1 { margin:0 0 .25rem; }
+.m3-batches .m3-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; margin-bottom:1rem; }
+.m3-batches .m3-metric { padding:1rem 1.1rem; border:1px solid var(--m3-line); border-radius:var(--radius-md); background:var(--color-surface); box-shadow:var(--shadow-xs); }
+.m3-batches .m3-metric strong { display:block; color:var(--color-primary); font-size:1.35rem; }
+.m3-batches .m3-metric span { color:var(--color-text-muted); font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+.m3-batches .m3-filter { border-left:4px solid var(--color-primary); }
+.m3-batches .m3-register .card-header { background:var(--color-surface); }
+.m3-batches .table td { vertical-align:top; }
+@media (max-width:800px) { .m3-batches .m3-hero { display:block; } .m3-batches .m3-hero .page-actions { margin-top:1rem; } .m3-batches .m3-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:520px) { .m3-batches .m3-hero .btn { width:100%; } .m3-batches .m3-metrics { grid-template-columns:1fr; } }
+</style>
+<div class="m3-batches">
+<div class="page-header m3-hero">
     <div class="page-title-group">
+        <div class="m3-kicker">Production control</div>
         <h1>Production Batches</h1>
-        <div class="page-subtitle">Module 3 &bull; Ownership: Member 3 &bull; Access: Admin, Production Manager</div>
+        <div class="page-subtitle">Plan line allocation, production quantity, and delivery windows from one operational register.</div>
     </div>
     <div class="page-actions">
         <a href="<?= e(url('modules/production_batches/create.php')) ?>" class="btn btn-primary">Add New Batch</a>
     </div>
+</div>
+
+<div class="m3-metrics" aria-label="Batch summary">
+    <div class="m3-metric"><strong><?= count($batches) ?></strong><span>Visible batches</span></div>
+    <div class="m3-metric"><strong><?= number_format($plannedPieces) ?></strong><span>Planned pieces</span></div>
+    <div class="m3-metric"><strong><?= (int) $batchStatusCounts['In Progress'] ?></strong><span>In progress</span></div>
+    <div class="m3-metric"><strong><?= (int) $batchStatusCounts['On Hold'] ?></strong><span>On hold</span></div>
 </div>
 
 <?php if ($tableMissing): ?>
@@ -115,7 +149,7 @@ include __DIR__ . '/../../includes/sidebar.php';
 <?php endif; ?>
 
 <!-- Search & Filter Controls -->
-<div class="card mb-4">
+<div class="card mb-4 m3-filter">
     <div class="card-body">
         <form method="get" action="<?= e(url('modules/production_batches/index.php')) ?>" class="filter-bar">
             <div class="filter-field-grow">
@@ -151,7 +185,7 @@ include __DIR__ . '/../../includes/sidebar.php';
 </div>
 
 <!-- Production Batches Directory Table -->
-<div class="card">
+<div class="card m3-register">
     <div class="card-header">
         <h2>Batch Directory</h2>
         <span class="badge badge-muted"><?= count($batches) ?> Result(s)</span>
@@ -236,6 +270,7 @@ include __DIR__ . '/../../includes/sidebar.php';
             </div>
         <?php endif; ?>
     </div>
+</div>
 </div>
 
 <?php

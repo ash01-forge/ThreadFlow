@@ -154,9 +154,15 @@ include __DIR__ . '/../../includes/header.php';
 include __DIR__ . '/../../includes/sidebar.php';
 ?>
 
+<style>
+.m3-progress-view .m3-hero{margin-bottom:1rem;padding:1.35rem 1.5rem;border:1px solid var(--color-border-subtle);border-left:4px solid var(--color-primary);border-radius:var(--radius-lg);background:var(--color-surface);box-shadow:var(--shadow-sm)}.m3-progress-view .m3-hero .page-header{margin:0;padding:0;border:0}.m3-progress-view .m3-kicker{margin-bottom:.35rem;color:var(--color-primary-light);font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.m3-progress-view .m3-snapshot{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--color-border-subtle)}.m3-progress-view .m3-snapshot small{display:block;color:var(--color-text-muted);font-size:.67rem;font-weight:700;text-transform:uppercase}.m3-progress-view .m3-snapshot strong{display:block;margin-top:.25rem}.m3-progress-view .m3-stage-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}.m3-progress-view .m3-stage{padding:.85rem;border:2px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface)}.m3-progress-view .m3-stage.current{border-color:var(--color-primary);background:var(--color-primary-subtle)}.m3-progress-view .m3-dossier{max-width:none;box-shadow:var(--shadow-md)}.m3-progress-view .m3-dossier .card-header{background:var(--color-primary-subtle)}@media(max-width:700px){.m3-progress-view .m3-hero .page-header{display:block}.m3-progress-view .page-actions{margin-top:1rem}.m3-progress-view .m3-snapshot{grid-template-columns:repeat(2,1fr)}.m3-progress-view .page-actions .btn{width:100%;margin-bottom:.5rem}}
+</style>
+<div class="m3-progress-view">
+<section class="m3-hero">
 <div class="page-header">
     <div class="page-title-group">
-        <h1>Stage Progress Dossier</h1>
+        <div class="m3-kicker">Lifecycle dossier</div>
+        <h1><?= e($record['stage_name']) ?></h1>
         <div class="page-subtitle">
             Progress #<?= (int)$record['progress_id'] ?> &bull; 
             Stage <?= (int)$record['sequence_number'] ?>: <?= e($record['stage_name']) ?> &bull; 
@@ -169,6 +175,13 @@ include __DIR__ . '/../../includes/sidebar.php';
         <a href="<?= e(url('modules/production_batches/view.php?id=' . (int)$record['batch_id'])) ?>" class="btn btn-secondary">View Batch</a>
     </div>
 </div>
+<div class="m3-snapshot">
+    <div><small>Status</small><strong><span class="badge <?= e($badgeClass) ?>"><?= e($record['status']) ?></span></strong></div>
+    <div><small>Input</small><strong><?= number_format($inputQty) ?> pcs</strong></div>
+    <div><small>Output / yield</small><strong><?= number_format($outputQty) ?> pcs &bull; <?= e((string) $yieldPct) ?>%</strong></div>
+    <div><small>Duration</small><strong><?= e($durationText) ?></strong></div>
+</div>
+</section>
 
 <!-- Batch Stage Workflow Tracker -->
 <?php if (!empty($batchStages)): ?>
@@ -178,7 +191,7 @@ include __DIR__ . '/../../includes/sidebar.php';
             <span class="badge badge-muted">Batch Planned: <?= number_format($plannedQty) ?> pcs</span>
         </div>
         <div class="card-body">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div class="m3-stage-grid">
                 <?php foreach ($batchStages as $bs): ?>
                     <?php
                     $isCurrent = ((int)$bs['stage_id'] === (int)$record['stage_id']);
@@ -192,7 +205,7 @@ include __DIR__ . '/../../includes/sidebar.php';
                         elseif ($bs['progress_status'] === 'On Hold') $stBadgeClass = 'badge-warning';
                     }
                     ?>
-                    <div style="border: 2px solid <?= $isCurrent ? '#78000F' : '#E5C3C7' ?>; border-radius: 8px; padding: 0.85rem; background: <?= $isCurrent ? '#FFF8F8' : '#FFFFFF' ?>;">
+                    <div class="m3-stage <?= $isCurrent ? 'current' : '' ?>">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="text-xs text-muted font-bold">Stage <?= (int)$bs['sequence_number'] ?></span>
                             <span class="badge <?= e($stBadgeClass) ?> text-xs"><?= e($stLabel) ?></span>
@@ -225,7 +238,7 @@ include __DIR__ . '/../../includes/sidebar.php';
 <?php endif; ?>
 
 <!-- Detailed Dossier Table -->
-<div class="card card-medium">
+<div class="card card-medium m3-dossier">
     <div class="card-header">
         <h2>Stage Details: <?= e($record['stage_name']) ?></h2>
         <div>
@@ -368,6 +381,7 @@ include __DIR__ . '/../../includes/sidebar.php';
             </table>
         </div>
     </div>
+</div>
 </div>
 
 <?php

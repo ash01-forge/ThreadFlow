@@ -95,9 +95,24 @@ include __DIR__ . '/../../includes/header.php';
 include __DIR__ . '/../../includes/sidebar.php';
 ?>
 
+<style>
+.m3-batch-view .m3-hero { margin-bottom:1rem; padding:1.35rem 1.5rem; border:1px solid var(--color-border-subtle); border-left:4px solid var(--color-primary); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:var(--shadow-sm); }
+.m3-batch-view .m3-hero .page-header { margin:0; padding:0; border:0; }
+.m3-batch-view .m3-kicker { margin-bottom:.35rem; color:var(--color-primary-light); font-size:.68rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+.m3-batch-view .m3-snapshot { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--color-border-subtle); }
+.m3-batch-view .m3-snapshot small { display:block; color:var(--color-text-muted); font-size:.68rem; font-weight:700; text-transform:uppercase; }
+.m3-batch-view .m3-snapshot strong { display:block; margin-top:.25rem; }
+.m3-batch-view .m3-dossier { max-width:none; box-shadow:var(--shadow-md); }
+.m3-batch-view .m3-dossier .card-header { background:var(--color-primary-subtle); }
+.m3-batch-view .m3-dossier th { width:220px; color:var(--color-text-muted); }
+@media(max-width:700px){.m3-batch-view .m3-hero .page-header{display:block}.m3-batch-view .page-actions{margin-top:1rem}.m3-batch-view .m3-snapshot{grid-template-columns:repeat(2,1fr)}.m3-batch-view .page-actions .btn{width:100%;margin-bottom:.5rem}}
+</style>
+<div class="m3-batch-view">
+<section class="m3-hero">
 <div class="page-header">
     <div class="page-title-group">
-        <h1>Production Batch Dossier</h1>
+        <div class="m3-kicker">Production dossier</div>
+        <h1><?= e($batch['batch_number']) ?></h1>
         <div class="page-subtitle">Batch #<?= (int) $batch['batch_id'] ?> &bull; <?= e($batch['batch_number']) ?> &bull; Order <?= e($batch['order_number']) ?></div>
     </div>
     <div class="page-actions">
@@ -105,8 +120,16 @@ include __DIR__ . '/../../includes/sidebar.php';
         <a href="<?= e(url('modules/production_batches/edit.php?id=' . (int)$batch['batch_id'])) ?>" class="btn btn-secondary">Edit Batch</a>
     </div>
 </div>
+</div>
+<div class="m3-snapshot">
+    <div><small>Status</small><strong><span class="badge <?= e($badgeClass) ?>"><?= e($batch['status']) ?></span></strong></div>
+    <div><small>Planned quantity</small><strong><?= number_format((int) $batch['planned_quantity']) ?> pcs</strong></div>
+    <div><small>Sewing line</small><strong><?= e($batch['line_code'] ?: ($batch['line_name'] ?: 'Not assigned')) ?></strong></div>
+    <div><small>Target end</small><strong><?= e(date('M j, Y', strtotime($batch['target_end_date']))) ?></strong></div>
+</div>
+</section>
 
-<div class="card card-medium">
+<div class="card card-medium m3-dossier">
     <div class="card-header">
         <h2>Batch <?= e($batch['batch_number']) ?></h2>
         <div>
@@ -220,6 +243,7 @@ include __DIR__ . '/../../includes/sidebar.php';
             </table>
         </div>
     </div>
+</div>
 </div>
 
 <?php

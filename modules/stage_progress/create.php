@@ -56,17 +56,25 @@ include __DIR__ . '/../../includes/header.php';
 include __DIR__ . '/../../includes/sidebar.php';
 ?>
 
+<style>
+.m3-progress-form .m3-kicker{margin-bottom:.35rem;color:var(--color-primary-light);font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.m3-progress-form .m3-form-card{max-width:920px;box-shadow:var(--shadow-md)}.m3-progress-form .m3-form-card>.card-header{background:var(--color-primary-subtle)}.m3-progress-form .m3-section{margin:1.35rem -1.35rem 1rem;padding:.95rem 1.35rem;border-top:1px solid var(--color-border-subtle);border-bottom:1px solid var(--color-border-subtle);background:var(--color-surface-subtle)}.m3-progress-form .m3-section:first-of-type{margin-top:-1.35rem;border-top:0}.m3-progress-form .m3-section h3{margin:0;color:var(--color-text);font-size:.95rem}.m3-progress-form .m3-section p{margin:.2rem 0 0;color:var(--color-text-muted);font-size:.78rem}.m3-progress-form .m3-two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.m3-progress-form .form-actions{margin:1.5rem -1.35rem -1.35rem;padding:1rem 1.35rem;border-top:1px solid var(--color-border-subtle);background:var(--color-surface-subtle)}@media(max-width:680px){.m3-progress-form .page-header{display:block}.m3-progress-form .page-actions{margin-top:1rem}.m3-progress-form .m3-two-col{grid-template-columns:1fr}.m3-progress-form .form-actions .btn{width:100%;margin-bottom:.5rem}}
+</style>
+<style>
+.m3-progress-form .m3-status-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}.m3-progress-form .m3-status-option{position:relative;cursor:pointer}.m3-progress-form .m3-status-option input{position:absolute;opacity:0;pointer-events:none}.m3-progress-form .m3-status-card{display:block;padding:.85rem;border:2px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);text-align:center;font-size:.8rem;font-weight:700}.m3-progress-form .m3-status-card strong,.m3-progress-form .m3-status-card small{display:block}.m3-progress-form .m3-status-card small{margin-top:.25rem;color:var(--color-text-muted);font-size:.68rem;font-weight:500;line-height:1.35}.m3-progress-form .m3-status-option input:checked+.m3-status-card{border-color:var(--color-info);color:var(--color-info);background:var(--color-info-bg);box-shadow:var(--shadow-focus)}.m3-progress-form .m3-status-option[data-status="On Hold"] input:checked+.m3-status-card{border-color:var(--color-warning);color:var(--color-warning);background:var(--color-warning-bg)}.m3-progress-form .m3-status-option[data-status="Completed"] input:checked+.m3-status-card{border-color:var(--color-success);color:var(--color-success);background:var(--color-success-bg)}.m3-progress-form .m3-status-option input:focus-visible+.m3-status-card{outline:3px solid rgba(120,0,15,.2);outline-offset:2px}@media(max-width:520px){.m3-progress-form .m3-status-options{grid-template-columns:1fr}}
+</style>
+<div class="m3-progress-form">
 <div class="page-header">
     <div class="page-title-group">
+        <div class="m3-kicker">New lifecycle entry</div>
         <h1>Record Stage Progress</h1>
-        <div class="page-subtitle">Module 3 &bull; Ownership: Member 3 &bull; Access: Admin, Production Manager</div>
+        <div class="page-subtitle">Capture the batch stage, quantity movement, operational state, and exact production window.</div>
     </div>
     <div class="page-actions">
         <a href="<?= e(url('modules/stage_progress/index.php')) ?>" class="btn btn-secondary">Back to Progress History</a>
     </div>
 </div>
 
-<div class="card card-form">
+<div class="card card-form m3-form-card">
     <div class="card-header">
         <h2>New Stage Progress Entry</h2>
     </div>
@@ -88,6 +96,8 @@ include __DIR__ . '/../../includes/sidebar.php';
 
         <form action="<?= e(url('modules/stage_progress/store.php')) ?>" method="post" novalidate>
             <?= csrf_field() ?>
+
+            <div class="m3-section"><h3>1. Batch and production stage</h3><p>Choose where this progress event belongs in the factory lifecycle.</p></div>
 
             <!-- Production Batch Selection -->
             <div class="form-group">
@@ -135,8 +145,10 @@ include __DIR__ . '/../../includes/sidebar.php';
                 <span class="form-text">Chronological factory stage. Later stages require preceding stages to be completed.</span>
             </div>
 
+            <div class="m3-section"><h3>2. Quantity movement and status</h3><p>Record inputs, usable output, and the existing supported workflow state.</p></div>
+
             <!-- Quantities Row -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="m3-two-col">
                 <div class="form-group">
                     <label for="input_quantity" class="form-label">Input Quantity (Pieces) <span class="required">*</span></label>
                     <input type="number"
@@ -173,29 +185,24 @@ include __DIR__ . '/../../includes/sidebar.php';
             </div>
 
             <!-- Status Selection -->
-            <div class="form-group">
-                <label for="status" class="form-label">Stage Status <span class="required">*</span></label>
-                <select id="status"
-                        name="status"
-                        class="form-control <?= isset($errors['status']) ? 'has-error' : '' ?>"
-                        required>
+            <fieldset class="form-group" style="border:0;padding:0;margin-bottom:1.25rem;">
+                <legend class="form-label">Stage Status <span class="required">*</span></legend>
+                <div class="m3-status-options <?= isset($errors['status']) ? 'has-error' : '' ?>">
                     <?php foreach ($statuses as $st): ?>
-                        <?php
-                        $selected = (($old['status'] ?? 'In Progress') === $st) ? 'selected' : '';
-                        ?>
-                        <option value="<?= e($st) ?>" <?= $selected ?>>
-                            <?= e($st) ?>
-                        </option>
+                        <?php $statusHelp = ['In Progress' => 'Stage work is actively underway.', 'On Hold' => 'Stage work is temporarily paused.', 'Completed' => 'Stage output and end time are finalized.'][$st]; ?>
+                        <label class="m3-status-option" data-status="<?= e($st) ?>"><input type="radio" name="status" value="<?= e($st) ?>" required <?= ($old['status'] ?? 'In Progress') === $st ? 'checked' : '' ?>><span class="m3-status-card"><strong><?= e($st) ?></strong><small><?= e($statusHelp) ?></small></span></label>
                     <?php endforeach; ?>
-                </select>
+                </div>
                 <?php if (isset($errors['status'])): ?>
                     <span class="form-error"><?= e($errors['status']) ?></span>
                 <?php endif; ?>
                 <span class="form-text">'Completed' status requires a valid End Date &amp; Time.</span>
-            </div>
+            </fieldset>
+
+            <div class="m3-section"><h3>3. Timing and operational notes</h3><p>Document when work started, when it ended, and any production observations.</p></div>
 
             <!-- Timestamps Row -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="m3-two-col">
                 <div class="form-group">
                     <label for="start_time" class="form-label">Start Date &amp; Time <span class="required">*</span></label>
                     <input type="datetime-local"
@@ -247,6 +254,7 @@ include __DIR__ . '/../../includes/sidebar.php';
             </div>
         </form>
     </div>
+</div>
 </div>
 
 <?php
