@@ -4,6 +4,17 @@ ThreadFlow is a role-based garment production management system that connects bu
 
 The project is built for a university DBMS course and runs locally on XAMPP without external packages or build tools.
 
+## Project Team
+
+ThreadFlow was collaboratively designed and developed by:
+
+- [Adeeb Sharar](https://github.com/ash01-forge) — 25%
+- [tanrif21](https://github.com/tanrif21) — 25%
+- [Farhan Labib](https://github.com/Farhan-Labib2003) — 25%
+- [TaSHin0302](https://github.com/TaSHin0302) — 25%
+
+All four members contributed equally to the planning, development, testing, documentation, and delivery of this project.
+
 ## Highlights
 
 - End-to-end traceability from buyer order to shipment
