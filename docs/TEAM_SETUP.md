@@ -272,32 +272,3 @@ A pull request should explain:
 
 Resolve conflicts, review the final diff, and verify the integrated result before merge.
 
-## 11. Team Handoff Checklist
-
-Before marking a feature complete:
-
-- business flow works with the correct role
-- input validation and error messages are clear
-- SQL uses prepared statements
-- output is escaped
-- CSRF protection is present
-- shared navigation is correct
-- layout matches the ThreadFlow design system
-- related SQL is included
-- no credentials or local-only files are tracked
-- the feature has been checked after merging with the latest `main`
-
-## 12. Submission Preparation
-
-For the final DBMS submission, keep the repository and report consistent:
-
-- README setup steps match the actual project
-- ERD matches the imported database
-- relational schema lists current PK and FK relationships
-- the report references the public or shared repository URL
-- a complete SQL export is available
-- screenshots cover each functional area
-- team contribution mapping reflects the final implementation
-- limitations and future improvements are stated honestly
-
-Return to the repository overview in [README.md](../README.md).
