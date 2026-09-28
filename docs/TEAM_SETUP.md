@@ -1,413 +1,303 @@
 # ThreadFlow — Team Setup & Architecture Guide
 
-This document outlines the setup workflow, team boundaries, database management, and shared helper contracts for all four team members collaborating on **ThreadFlow**.
-
----
-
-## 1. Project Overview & Tech Stack
-
-- **Project**: ThreadFlow — Garment Production, Quality Control and Traceability System.
-- **Stack**: Core PHP, MySQL-compatible SQL, HTML, CSS (Custom Properties), Vanilla JavaScript.
-- **Runtime**: Local XAMPP stack (Apache + MariaDB/MySQL).
-- **Core Principle**: No Laravel, React, Vue, Node build pipeline, Composer, or external CDNs/frameworks. Keep everything lightweight, transparent, and modular.
-
----
-
-## 2. Environment & PHP Requirements
-
-Ensure your XAMPP installation has the following PHP extensions enabled in `php.ini` (standard in default XAMPP):
-- `mysqli` (Database connectivity)
-- `session` (Session management)
-- `openssl` (Secure token generation)
-- `json` (Payload exchange)
-- `mbstring` (Multibyte string operations)
-
----
-
-## 3. Local Configuration Setup
-
-1. Navigate to `config/`.
-2. Copy `config.example.php` to `config.local.php`:
-   ```bash
-   # In Windows Command Prompt or PowerShell:
-   copy config\config.example.php config\config.local.php
-   ```
-3. Update `config/config.local.php` with your local database credentials if they differ from XAMPP defaults:
-   - `db_host`: `127.0.0.1`
-   - `db_port`: `3306`
-   - `db_name`: `threadflow_db`
-   - `db_user`: `root`
-   - `db_pass`: `""` (empty string by default in XAMPP)
-   - `base_url`: `/ThreadFlow`
-4. **Note**: `config.local.php` is listed in `.gitignore` and must **never** be committed.
-
----
-
-## 4. Database Setup & Import Order
-
-> [!IMPORTANT]
-> **Git Does NOT Sync Live Databases!**
-> Git only tracks SQL migration files under `sql/`. Each teammate runs their own local database in MySQL/phpMyAdmin. When a teammate adds a table, they commit a new SQL script to `sql/`, and teammates must import that script locally.
-
-### Scenario A: Existing Database (Current Host)
-If `threadflow_db` and the `buyers` table are **already created** on your machine:
-- **DO NOT re-import `sql/buyers.sql`** (doing so may cause duplicate table errors or disrupt existing buyer rows).
-- **Import ONLY the additive authentication schema**:
-  - **Using phpMyAdmin**:
-    1. Open phpMyAdmin (`http://localhost/phpmyadmin`).
-    2. Click on database `threadflow_db` in the left navigation.
-    3. Click the **Import** tab at the top.
-    4. Click **Choose File** and select `sql/auth.sql`.
-    5. Click **Import** (or **Go**) at the bottom of the page.
-  - **Using MySQL CLI**:
-    ```bash
-    mysql -u root -p threadflow_db < sql/auth.sql
-    ```
-
-### Scenario B: Fresh Database Setup (New Teammate Machine)
-If setting up ThreadFlow from scratch on a new laptop or fresh XAMPP installation:
-1. Create the database:
-   - In phpMyAdmin: Click **New**, enter database name `threadflow_db`, choose collation `utf8mb4_unicode_ci`, click **Create**.
-   - Or in MySQL CLI:
-     ```sql
-     CREATE DATABASE IF NOT EXISTS threadflow_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-     ```
-2. Import tables in strict order:
-   - **Step 1: Import `sql/buyers.sql`**
-     - phpMyAdmin: Open `threadflow_db` &rarr; click **Import** tab &rarr; select `sql/buyers.sql` &rarr; click **Import**.
-     - Or MySQL CLI: `mysql -u root -p threadflow_db < sql/buyers.sql`
-   - **Step 2: Import `sql/auth.sql`**
-     - phpMyAdmin: Open `threadflow_db` &rarr; click **Import** tab &rarr; select `sql/auth.sql` &rarr; click **Import**.
-     - Or MySQL CLI: `mysql -u root -p threadflow_db < sql/auth.sql`
-
----
-
-## 5. Account Provisioning via CLI
-
-To ensure strict security and prevent hardcoded credentials or public registration exploits, user accounts are created using interactive CLI scripts. Passwords are typed interactively from the terminal and are never accepted via CLI flags.
-
-### 1. Initial Administrator Account
-Run the provisioning tool from the project root:
-```bash
-C:\xampp\php\php.exe bin/create_admin.php
-```
-Follow the interactive prompts:
-- Username (default: `admin`)
-- Full Name
-- Email Address
-- Password (minimum 8 characters, typed interactively)
-- Password Confirmation
-
-### 2. Testing Non-Admin Roles
-To test role-restricted pages without building registration or CRUD:
-```bash
-C:\xampp\php\php.exe bin/create_user.php
-```
-Select a role:
-1. `admin`
-2. `merchandiser` (Member 1 module access)
-3. `production_manager` (Member 2 & 3 module access)
-4. `qc_officer` (Member 4 module access)
-5. `management` (Dashboard-only access)
-
-Enter username, email, full name, and password interactively.
-
----
-
-## 6. Team Member Boundaries & Ownership
-
-| Component | Owner | Scope & Responsibilities |
-| :--- | :--- | :--- |
-| **Common Foundation** | All Members | `config/`, `includes/`, `assets/`, `auth/`, `sql/auth.sql`. Shared conventions. No member should modify these without notifying the team. |
-| **Module 1: Buyer Management** | **Member 1** | Directory: `modules/buyers/`. Database: `sql/buyers.sql`. Buyer directory, add/edit profiles, store handlers. |
-| **Module 2: Supplier Management** | **Member 2** | Directory: `modules/suppliers/`. Database: `sql/suppliers.sql`. Vendor records, material catalog, lead time evaluations. |
-| **Module 3: Production Batches** | **Member 3** | Directory: `modules/production_batches/`. Database: `sql/production_batches.sql`. Work orders, cutting, sewing lines, batch tracking. |
-| **Module 4: Defect Types** | **Member 4** | Directory: `modules/defect_types/`. Database: `sql/defect_types.sql`. Defect taxonomy, severity thresholds, QC inspection fault codes. |
-
----
-
-## 7. Role Access Authorization Mapping
-
-| Role | Accessible Modules |
-| :--- | :--- |
-| `admin` | Dashboard, Buyer Management, Supplier Management, Production Batches, Defect Types, Database Diagnostics |
-| `merchandiser` | Dashboard, Buyer Management |
-| `production_manager` | Dashboard, Supplier Management, Production Batches |
-| `qc_officer` | Dashboard, Defect Types |
-| `management` | Dashboard shell (read-only high-level views) |
-
-> [!NOTE]
-> Active status and user roles are verified directly against the live database on every protected request. If an admin modifies a user's role or sets `is_active = 0` in the database, the change applies immediately.
-
----
-
-## 8. Shared Helper Contracts & Developer API
-
-All pages should include `includes/auth.php` (which automatically loads `config.php`, `database.php`, `session.php`, and `helpers.php`).
-
-### 1. HTML Escaping
-```php
-echo e($userInput); // Uses htmlspecialchars(..., ENT_QUOTES, 'UTF-8')
-```
-
-### 2. URL Generation
-```php
-<a href="<?= e(url('modules/buyers/create.php')) ?>">Add Buyer</a>
-<link rel="stylesheet" href="<?= e(asset('css/style.css')) ?>">
-```
-
-### 3. Role Authorization Enforcers
-```php
-// Protect page for specific roles:
-require_role(['admin', 'merchandiser']);
-
-// Check role conditionally:
-if (has_role('admin')) {
-    // Show admin controls
-}
-```
-
-### 4. CSRF Protection for Forms
-In your view form:
-```html
-<form action="store.php" method="post">
-    <?= csrf_field() ?>
-    <!-- inputs -->
-    <button type="submit">Submit</button>
-</form>
-```
-In your action handler (`store.php`):
-```php
-require_once __DIR__ . '/../../includes/auth.php';
-require_role(['admin', 'merchandiser']);
-require_csrf(); // Validates POST token; halts with 403 if invalid
-```
-
-### 5. Flash Messages & Redirects
-```php
-flash_set('success', 'Buyer added successfully.');
-redirect('modules/buyers/index.php');
-```
-
-### 6. Standard Database Access Pattern
-Always use prepared statements with `$conn`:
-```php
-$stmt = $conn->prepare("SELECT buyer_id, buyer_name, email FROM buyers WHERE is_active = ?");
-$isActive = 1;
-$stmt->bind_param("i", $isActive);
-$stmt->execute();
-$result = $stmt->get_result();
-
-while ($row = $result->fetch_assoc()) {
-    echo e($row['buyer_name']);
-}
-$stmt->close();
-```
-
----
-
-## 9. Git Branching & Collaboration Workflow
-
-1. **Do Not Commit to `main` Directly**:
-   - `setup/common-foundation` is the baseline branch.
-   - Work in dedicated feature branches:
-     - Member 1: `feature/buyer-management`
-     - Member 2: `feature/supplier-management`
-     - Member 3: `feature/production-batches`
-     - Member 4: `feature/defect-types`
-2. **Branching Command**:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. **Database Scripts**:
-   - Never write `DROP TABLE` or destructive modifications.
-   - Use additive statements (`CREATE TABLE IF NOT EXISTS ...`).
-   - Prefix foreign keys and tables cleanly.
-4. **Secrets & Cache**:
-   - Never commit `config.local.php` or `.env`.
-   - Before submitting a pull request, run a PHP syntax lint:
-     ```bash
-     C:\xampp\php\php.exe -l your_modified_file.php
-     ```
-
----
-
-## 10. Reusable UI Classes — `design/modern-ui` Reference
-
-> Added by the `design/modern-ui` branch. All classes are defined in [`assets/css/style.css`](../assets/css/style.css). Use these in your module views to maintain a consistent look without writing new CSS.
-
-### Layout
-
-| Class | Purpose |
-| :--- | :--- |
-| `.page-header` | Flex row between page title and action buttons |
-| `.page-title-group` | Wraps `<h1>` + `.page-subtitle` |
-| `.page-subtitle` | Muted description line under the page title |
-| `.page-actions` | Right-aligned action button group |
-| `.content-container` | Centred max-width wrapper (1200 px) inside `.app-main` |
-
-### Cards
-
-| Class | Purpose |
-| :--- | :--- |
-| `.card` | White rounded card with subtle shadow (12 px radius) |
-| `.card-form` / `.card-narrow` | Card restricted to 680 px max-width (ideal for forms) |
-| `.card-medium` | Card restricted to 850 px max-width (ideal for detail dossiers) |
-| `.card-header` | Tinted card header; flex row for title + badge |
-| `.card-body` | Card content area with generous padding |
-| `.card-footer` | Tinted card footer (links, status info) |
-| `.empty-state` | Centred zero-results panel for empty directories/tables |
-| `.module-card` | Dashboard module tile — hover lifts |
-| `.module-card.restricted` | Dimmed dashed tile for locked modules |
-| `.module-card-title` | Module name heading inside tile |
-| `.module-card-desc` | Short description inside tile |
-| `.module-card-footer` | CTA area at the bottom of a module tile |
-
-### Forms
-
-| Class | Purpose |
-| :--- | :--- |
-| `.form-group` | Vertical spacing wrapper around label + input |
-| `.form-label` | Bold field label; add `.required` `<span>` for `*` |
-| `.form-control` | Full-width styled input, textarea, or select |
-| `.form-control.has-error` | Red border + focus ring when field fails validation |
-| `.form-text` | Muted helper text below a field |
-| `.form-error` | Red validation message below a field |
-| `.form-actions` | Button cluster row for submit/cancel buttons |
-| `.filter-bar` | Flex search/filter row (use in index listing views) |
-| `.filter-field-grow` | Grows to fill available space (search input column) |
-| `.filter-field` | Fixed-width filter column (status dropdowns) |
-| `.filter-actions` | Button cluster at the right end of a filter bar |
-
-### Buttons
-
-| Class | Purpose |
-| :--- | :--- |
-| `.btn` | Base button — always combine with a variant |
-| `.btn-primary` | Maroon filled — primary CTA |
-| `.btn-secondary` | White/outlined — secondary actions |
-| `.btn-danger` | White/red-outlined — destructive actions |
-| `.btn-sm` | Compact size for table row actions |
-| `.btn-auth-submit` | Full-width button for login/auth forms |
-
-### Badges & Status
-
-| Class | Purpose |
-| :--- | :--- |
-| `.badge` | Base pill — combine with colour variant |
-| `.badge-primary` | Maroon fill |
-| `.badge-success` | Green — Active, Ready |
-| `.badge-warning` | Amber — Pending, Under Development |
-| `.badge-danger` | Red — Inactive, Missing, Error |
-| `.badge-info` | Blue — informational |
-| `.badge-muted` | Grey — neutral labels (e.g. M1, M2) |
-| `.badge-role` | Translucent white — role chip in the header |
-
-### Alerts
-
-| Class | Purpose |
-| :--- | :--- |
-| `.alert` | Base alert bar — combine with colour variant |
-| `.alert-success` | Green confirmation |
-| `.alert-danger` / `.alert-error` | Red error |
-| `.alert-warning` | Amber caution |
-| `.alert-info` | Blue information |
-| `.alert-close` | Dismiss button inside an alert |
-
-### Tables
-
-| Class | Purpose |
-| :--- | :--- |
-| `.table-responsive` | Horizontal-scroll wrapper for wide tables |
-| `.table` | Styled data table with hover rows |
-| `.col-id` | Standard 52 px width for ID columns |
-| `.col-status` | Standard 96 px width with centered alignment for status columns |
-| `.col-actions` | Standard 220 px width with right alignment for action columns |
-| `.row-actions` | Compact flex row for table action buttons (`View`, `Edit`, `Toggle`) |
-| `.text-nowrap` | Prevents table cells or button groups from wrapping |
-
-### Sidebar Navigation *(shared — do not modify)*
-
-| Class | Purpose |
-| :--- | :--- |
-| `.nav-link` | Sidebar anchor — add `.active` for current page |
-| `.nav-link-main` | Inner flex span (icon + label) |
-| `.nav-icon` | 18 × 18 inline SVG icon beside nav label |
-| `.nav-badge` | Small pill label at the right of a nav item |
-
-### Utilities
-
-| Class | Purpose |
-| :--- | :--- |
-| `.text-center / .text-right / .text-left` | Text alignment |
-| `.text-muted` | Secondary muted text colour |
-| `.text-sm` | 0.8125 rem font size |
-| `.text-xs` | 0.72 rem font size |
-| `.font-semibold / .font-bold` | Font weight helpers |
-| `.d-flex` | `display: flex` |
-| `.align-items-center` | Flex vertical centre |
-| `.justify-content-between` | Flex space-between |
-| `.flex-wrap` | Allow flex children to wrap |
-| `.gap-1` – `.gap-4` | Flex/grid gap (0.25 rem – 1 rem) |
-| `.mt-1` – `.mt-5` | Margin-top utilities |
-| `.mb-1` – `.mb-5` | Margin-bottom utilities |
-| `.ml-1` – `.ml-3` | Margin-left utilities |
-| `.mr-1` – `.mr-3` | Margin-right utilities |
-| `.list-unstyled` | Semantic `<ul>` without bullets, padding, and subtle row borders |
-
-### Quick Start Example — Module Index View
-
-```php
-<div class="page-header">
-    <div class="page-title-group">
-        <h1>My Records</h1>
-        <div class="page-subtitle">Module X &bull; Access: Admin, My Role</div>
-    </div>
-    <div class="page-actions">
-        <a href="<?= e(url('modules/my_module/create.php')) ?>" class="btn btn-primary">Add New</a>
-    </div>
-</div>
-
-<!-- Filter bar inside a card -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="get" class="filter-bar">
-            <div class="filter-field-grow">
-                <label for="q" class="form-label">Search</label>
-                <input type="text" id="q" name="q" class="form-control" value="<?= e($search) ?>">
-            </div>
-            <div class="filter-actions">
-                <button type="submit" class="btn btn-primary">Filter</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Data table inside a card -->
-<div class="card">
-    <div class="card-header">
-        <h2>Records</h2>
-        <span class="badge badge-muted"><?= count($rows) ?> results</span>
-    </div>
-    <div class="card-body" style="padding: 0;">
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr><th>Name</th><th>Status</th><th style="text-align:right;">Actions</th></tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($rows as $row): ?>
-                    <tr>
-                        <td><?= e($row['name']) ?></td>
-                        <td><span class="badge badge-success">Active</span></td>
-                        <td style="text-align:right;">
-                            <a href="..." class="btn btn-sm btn-secondary">View</a>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-```
+This guide is the shared reference for setting up, understanding, verifying, and contributing to ThreadFlow. It reflects the current application modules and database scripts in the repository.
+
+## 1. System Overview
+
+ThreadFlow is a role-based garment production, quality-control, and traceability system. It connects the operational path from buyer and order management through fabric handling, production, inspection, rework, packing, shipment, and audit reporting.
+
+### Technology constraints
+
+- Core PHP 7.4 or later
+- MySQL or MariaDB through MySQLi
+- HTML5, CSS3, and Vanilla JavaScript
+- XAMPP on Windows
+- No PHP or JavaScript framework
+- No Composer or Node.js build pipeline
+- No CDN or external runtime dependency
+
+## 2. Local Environment
+
+### Required services
+
+Start Apache and MySQL from the XAMPP Control Panel.
+
+### Project location
+
+~~~text
+C:\xampp\htdocs\ThreadFlow
+~~~
+
+### Local configuration
+
+Copy `config/config.example.php` to `config/config.local.php`.
+
+Default development values:
+
+~~~php
+return [
+    'db_host' => '127.0.0.1',
+    'db_port' => 3306,
+    'db_name' => 'threadflow_db',
+    'db_user' => 'root',
+    'db_pass' => '',
+    'base_url' => '/ThreadFlow',
+    'app_name' => 'ThreadFlow',
+    'app_env' => 'development',
+    'session_lifetime' => 0,
+];
+~~~
+
+Never commit `config/config.local.php`, credentials, local dumps containing sensitive data, or environment-specific secrets.
+
+## 3. Database Installation
+
+Create an empty database named `threadflow_db` with the `utf8mb4` character set.
+
+Import the SQL files in this dependency-safe order:
+
+1. `buyers.sql`
+2. `auth.sql`
+3. `orders.sql`
+4. `order_items.sql`
+5. `buyer_change_requests.sql`
+6. `suppliers.sql`
+7. `fabric_lots.sql`
+8. `production_batches.sql`
+9. `stage_progress.sql`
+10. `bottleneck_monitoring.sql`
+11. `defect_types.sql`
+12. `quality_inspections.sql`
+13. `rework_management.sql`
+14. `packing_shipment.sql`
+15. `audit_logs.sql`
+16. `fabric_inspections.sql`
+17. `fabric_allocations.sql`
+18. `operational_dashboard.sql`
+
+Use an empty database for a clean installation. `buyers.sql` creates its table without `IF NOT EXISTS`, and some later scripts contain shared dependencies or seed data. Do not blindly re-import the complete sequence into a populated database.
+
+### Expected database objects
+
+The completed database contains 19 base tables:
+
+- `audit_logs`
+- `buyers`
+- `buyer_change_requests`
+- `buyer_orders`
+- `defect_types`
+- `fabric_allocations`
+- `fabric_inspections`
+- `fabric_lots`
+- `inspection_defects`
+- `order_items`
+- `packing_shipments`
+- `production_batches`
+- `production_stages`
+- `quality_inspections`
+- `rework_jobs`
+- `sewing_lines`
+- `stage_progress`
+- `suppliers`
+- `users`
+
+The bottleneck feature also creates `view_bottleneck_monitoring`.
+
+## 4. Account Provisioning
+
+Create the first administrator from the project directory:
+
+~~~text
+php bin/create_admin.php
+~~~
+
+Create additional role-based test accounts with:
+
+~~~text
+php bin/create_user.php
+~~~
+
+Supported application roles are:
+
+- `admin`
+- `merchandiser`
+- `production_manager`
+- `qc_officer`
+- `management`
+
+Use test-only credentials and never document real passwords in Git.
+
+## 5. Module and Role Map
+
+| Workflow | Directory | Roles |
+| --- | --- | --- |
+| Buyer management | `modules/buyers/` | Admin, Merchandiser |
+| Order management | `modules/orders/` | Admin, Merchandiser |
+| Buyer change requests | `modules/buyer_change_requests/` | Admin, Merchandiser; Admin review |
+| Buyer risk analyzer | `modules/buyer_risk_analyzer/` | Admin, Merchandiser, Management |
+| Supplier management | `modules/suppliers/` | Admin, Production Manager |
+| Fabric receiving | `modules/fabric_receiving/` | Admin, Production Manager |
+| Fabric inspections | `modules/fabric_inspections/` | Admin, Production Manager, QC Officer |
+| Fabric allocations | `modules/fabric_allocations/` | Admin, Production Manager |
+| Production batches | `modules/production_batches/` | Admin, Production Manager |
+| Stage progress | `modules/stage_progress/` | Admin, Production Manager |
+| Bottleneck monitoring | `modules/bottlenecks/` | Admin, Production Manager |
+| Operational dashboard | `modules/operational_dashboard/` | Admin, Production Manager, Management |
+| Defect types | `modules/defect_types/` | Admin, QC Officer |
+| Quality inspections | `modules/quality_inspections/` | Admin, QC Officer |
+| Rework management | `modules/rework/` | Admin, QC Officer |
+| Packing and shipment | `modules/packing_shipment/` | Admin, QC Officer |
+| Audit history | `modules/audit_logs/` | Admin, QC Officer |
+| User management | `modules/users/` | Admin |
+
+The dashboard is available to authenticated users. The sidebar must display only the modules appropriate for the active role.
+
+## 6. Architecture
+
+### Shared core
+
+- `config/config.php`: application constants and environment configuration
+- `config/database.php`: shared MySQLi connection
+- `includes/session.php`: session initialization
+- `includes/auth.php`: login and role authorization
+- `includes/helpers.php`: escaping, URLs, CSRF, redirects, and flash helpers
+- `includes/header.php`, `sidebar.php`, and `footer.php`: shared layout
+- `includes/audit.php`: audit logging support
+- `assets/css/style.css`: shared design system
+- `assets/js/main.js`: shared client-side interaction
+
+### Module pattern
+
+Each module owns its business pages and handlers. Typical pages include:
+
+- `index.php`: listing, search, and filters
+- `view.php` or `details.php`: record detail
+- `create.php` and `store.php`: creation form and handler
+- `edit.php` and `update.php`: update form and handler
+- dedicated POST handlers for status transitions when needed
+
+Keep SQL and business behavior within the relevant module unless the behavior is genuinely shared.
+
+## 7. Security Contracts
+
+All contributors must preserve these requirements:
+
+1. Include `includes/auth.php` on protected pages.
+2. Call `require_login()` or `require_role(...)` before output.
+3. Use the shared `$conn` object from `config/database.php`.
+4. Use prepared statements for every user-controlled SQL value.
+5. Escape displayed user-controlled data with `e()`.
+6. Include `csrf_field()` in every state-changing form.
+7. Call `require_csrf()` in every state-changing handler.
+8. Keep logout POST-only.
+9. Log internal database errors without displaying credentials or raw exceptions.
+10. Validate identifiers and business-state transitions on the server.
+
+## 8. Interface Standards
+
+ThreadFlow uses a shared maroon and soft-pink visual system.
+
+- Primary color: `#78000F`
+- Background color: `#FCEBED`
+- Use shared CSS variables and reusable classes from `assets/css/style.css`.
+- Preserve the shared header and sidebar behavior.
+- Every form control requires a connected label.
+- Interactive elements need visible keyboard focus.
+- Status badges must maintain readable contrast.
+- Tables and action controls must remain usable on narrow screens.
+- New interfaces should follow existing spacing, typography, card, alert, and button patterns.
+
+## 9. Verification Checklist
+
+### Database
+
+- Apache and MySQL are running.
+- `threadflow_db` contains all 19 tables.
+- `view_bottleneck_monitoring` exists.
+- Foreign-key-dependent pages load without SQL errors.
+- `tests/database_test.php` reports a successful connection.
+
+### Authentication and roles
+
+- Login and logout work.
+- Inactive accounts cannot access protected functions.
+- Each role sees only its authorized modules.
+- Direct URL access is also blocked for unauthorized roles.
+- Admin can manage users and review buyer change requests.
+
+### Integrated workflow
+
+- Buyers and orders load.
+- Fabric receiving, inspection, and allocation records connect correctly.
+- Production batches and stage progress load.
+- Bottleneck and operational dashboards load.
+- Quality inspection, defect, rework, packing, and shipment pages load.
+- Audit history records relevant actions.
+- Search, filters, view, create, and edit screens render correctly.
+
+When using important data, perform a non-destructive smoke test: open forms but do not submit status changes or delete records.
+
+## 10. Git Collaboration
+
+### Branching
+
+Create a focused branch from the latest `main`:
+
+~~~text
+feature/short-description
+fix/short-description
+docs/short-description
+~~~
+
+Do not develop directly on `main`.
+
+### Commit quality
+
+- Keep commits focused and understandable.
+- Use imperative summaries such as `Document database setup and role access`.
+- Do not mix unrelated UI, SQL, and documentation changes.
+- Review the changed-file list before committing.
+- Never commit local credentials or editor-generated files.
+
+### Pull requests
+
+A pull request should explain:
+
+- what changed
+- why it changed
+- affected modules and roles
+- database impact
+- verification performed
+- screenshots for visible interface changes
+
+Resolve conflicts, review the final diff, and verify the integrated result before merge.
+
+## 11. Team Handoff Checklist
+
+Before marking a feature complete:
+
+- business flow works with the correct role
+- input validation and error messages are clear
+- SQL uses prepared statements
+- output is escaped
+- CSRF protection is present
+- shared navigation is correct
+- layout matches the ThreadFlow design system
+- related SQL is included
+- no credentials or local-only files are tracked
+- the feature has been checked after merging with the latest `main`
+
+## 12. Submission Preparation
+
+For the final DBMS submission, keep the repository and report consistent:
+
+- README setup steps match the actual project
+- ERD matches the imported database
+- relational schema lists current PK and FK relationships
+- the report references the public or shared repository URL
+- a complete SQL export is available
+- screenshots cover each functional area
+- team contribution mapping reflects the final implementation
+- limitations and future improvements are stated honestly
+
+Return to the repository overview in [README.md](../README.md).
